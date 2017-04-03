@@ -8,7 +8,6 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, permission_classes
-from serializers import UserSerializer
 import jwt
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from django.http.response import HttpResponse
@@ -78,15 +77,32 @@ def changePassword(request):
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
-def getUserList(request):  
-    
-    return Response([  
-        {"username":request.POST.get('username', ''),
-         "password":request.POST.get('password', '')},  
-        {"name":"auditor","password":"456"}, 
+def getUserList(request):
+    adminKey=request.POST.get('adminkey', '')
+    if adminKey!='iamadministrator':
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    else:
+        user_list=MyUser.objects.all().values_list('username')
+        return Response(user_list)
+
+@api_view(http_method_names=['DELETE'])
+@permission_classes((permissions.AllowAny,))  
+def deleteUser(request):
+    adminKey=request.data.get('adminkey', '')
+    userName=request.data.get('username','')
+    if adminKey!='iamadministrator':
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    else:
+        user=MyUser.objects.filter(username=userName)
+        if user is None:
+            return HttpResponse(HTTP_400_BAD_REQUEST)
+        else:
+            MyUser.objects.filter(username=userName).delete()
         
-          #json foemat return verify=false no header
-    ])  
+        
+      
+    
+  
   
         
         
