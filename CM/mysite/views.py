@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 import jwt
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from django.http.response import HttpResponse
+import os
 
 
 
@@ -98,9 +99,24 @@ def deleteUser(request):
             return HttpResponse(HTTP_400_BAD_REQUEST)
         else:
             MyUser.objects.filter(username=userName).delete()
+
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def upload(request):
+    myFile =request.FILES.get('myfile', None)  
+    if myFile is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    else:
+        destination = open(os.path.join('E:\upload',myFile.name),'wb+')
+        for chunk in myFile.chunks():     
+            destination.write(chunk)   
+        destination.close()  
+        return HttpResponse("upload over!")
+               
         
-        
-      
+       
     
   
   
