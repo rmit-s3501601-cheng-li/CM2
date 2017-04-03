@@ -23,6 +23,6 @@ urlpatterns = [
     url(r'^adduser/', views.adduser),
     url(r'^getUserList/$', views.getUserList),
     url(r'changePassword/$', views.changePassword),
-    url(r'upload/$', views.upload),
+    url(r'upload/$', views.upLoad),
     
 ]

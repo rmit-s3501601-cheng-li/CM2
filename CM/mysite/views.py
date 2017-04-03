@@ -104,32 +104,19 @@ def deleteUser(request):
 
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
-def upload(request):
-    myFile =request.FILES.get('myfile', None)  
+def upLoad(request):
+    myFile =request.FILES.get(11, None)  
     if myFile is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
-        destination = open(os.path.join('E:\upload',myFile.name),'wb+')
+        destination = open(os.path.join('E:\yy',myFile.name),'wb+')
         for chunk in myFile.chunks():     
             destination.write(chunk)   
         destination.close()  
         return HttpResponse("upload over!")
-               
-        
-       
-    
-  
-  
-        
-        
-      
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def downLoad(request):
+    pass
