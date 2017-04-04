@@ -4,11 +4,9 @@ from models import MyUser
 from django.db.models.query import QuerySet
 from rest_framework.views import APIView
 from django.template.context_processors import request
-from rest_framework_jwt.settings import api_settings
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, permission_classes
-import jwt
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from django.http.response import HttpResponse
 import os

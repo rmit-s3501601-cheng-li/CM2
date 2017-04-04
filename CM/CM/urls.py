@@ -24,5 +24,6 @@ urlpatterns = [
     url(r'^getUserList/$', views.getUserList),
     url(r'changePassword/$', views.changePassword),
     url(r'upload/$', views.upLoad),
+    url(r'upload/$', views.download),
     
 ]
