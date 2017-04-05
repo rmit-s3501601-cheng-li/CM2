@@ -117,4 +117,19 @@ def upLoad(request):
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def downLoad(request):
-    pass
+    
+    fileName = basePath + request.data.get('path', '')
+    def file_iterator(file, chunk_size = 512):
+        with open(file) as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+
+    response = StreamingHttpResponse(file_iterator(fileName))
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="{0}"'.format(fileName)
+
+    return response
