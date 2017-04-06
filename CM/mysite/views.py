@@ -98,35 +98,37 @@ def deleteUser(request):
             return HttpResponse(HTTP_400_BAD_REQUEST)
         else:
             MyUser.objects.filter(username=userName).delete()
+            return HttpResponse(HTTP_200_OK)
+            
 
 
 
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def upLoad(request):
-    """
-    myFile =request.FILES.get(11, None) 
 
-    if myFile is None:
+    newFile =request.FILES.get('myfile', None) 
+    path=request.POST.get('path', None)
+     if myFile is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    elif path is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    
+    fpath , fname = os.path.split(path)
+    if os.path.exists(fpath) is False:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
-        destination = open(os.path.join('E:\yy',myFile.name),'wb+')
+        os.remove(path)
+        destination = open(os.path.join(fpath,myFile.name),'wb+')
         for chunk in myFile.chunks():     
             destination.write(chunk)   
         destination.close()  
-        return HttpResponse("upload over!")
-    """
+        return HttpResponse(HTTP_200_OK)
 
-    myFile =request.FILES['myfile']
 
-    if myFile is None:
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    else:
-        destination = open(os.path.join('E:\yy',myFile.name),'wb+')
-        for chunk in myFile.chunks():     
-            destination.write(chunk)   
-        destination.close()  
-        return HttpResponse("upload over!")
+    #myFile =request.FILES['myfile']
+
+
 
     
 
