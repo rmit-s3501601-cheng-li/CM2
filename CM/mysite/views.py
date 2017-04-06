@@ -109,26 +109,47 @@ def upLoad(request):
 
     newFile =request.FILES.get('myfile', None) 
     path=request.POST.get('path', None)
-     if myFile is None:
+    if newFile is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     elif path is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     
     fpath , fname = os.path.split(path)
-    if os.path.exists(fpath) is False:
+    if os.path.exists(path) is False:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
         os.remove(path)
-        destination = open(os.path.join(fpath,myFile.name),'wb+')
-        for chunk in myFile.chunks():     
+        #need update database
+        destination = open(os.path.join(fpath,newFile.name),'wb+')
+        for chunk in newFile.chunks():     
             destination.write(chunk)   
+        #update database
         destination.close()  
         return HttpResponse(HTTP_200_OK)
 
 
     #myFile =request.FILES['myfile']
 
-
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def addFile(request):
+    newFile =request.FILES.get('myfile', None)
+    path=request.POST.get('path', None)
+    if newFile is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    elif path is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    
+    if os.path.exists(path) is False:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    else:
+        destination = open(os.path.join(path,newFile.name),'wb+')
+        for chunk in newFile.chunks():     
+            destination.write(chunk)   
+        #update database
+        destination.close()  
+        return HttpResponse(HTTP_200_OK)
+    
 
     
 
