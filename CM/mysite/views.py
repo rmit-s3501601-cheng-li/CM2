@@ -9,6 +9,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from django.http.response import HttpResponse
+from django.core.files.storage import FileSystemStorage
 import os
 
 
@@ -103,7 +104,21 @@ def deleteUser(request):
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def upLoad(request):
-    myFile =request.FILES.get(11, None)  
+    """
+    myFile =request.FILES.get(11, None) 
+
+    if myFile is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
+    else:
+        destination = open(os.path.join('E:\yy',myFile.name),'wb+')
+        for chunk in myFile.chunks():     
+            destination.write(chunk)   
+        destination.close()  
+        return HttpResponse("upload over!")
+    """
+
+    myFile =request.FILES['myfile']
+
     if myFile is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
@@ -113,11 +128,14 @@ def upLoad(request):
         destination.close()  
         return HttpResponse("upload over!")
 
+    
+
 
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def downLoad(request):
     
+    #Change local path when doing test
     fileName = basePath + request.data.get('path', '')
     def file_iterator(file, chunk_size = 512):
         with open(file) as f:
