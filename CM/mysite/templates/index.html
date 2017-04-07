@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="library/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="library/bootstrap/css/bootstrap-theme.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
+
+    <!--<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>-->
+    <!--<script type="text/javascript"-->
+    <!--src="bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
+
+    <!--<link rel="stylesheet"-->
+    <!--href="bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css"/>-->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+    <script src="library/angular-ui-router.js"></script>
+    <script src="library/md5.js"></script>
+    <script src="library/angular-cookies.js"></script>
+
+    <link rel="stylesheet" href="bower_components/angularjs-datetime-picker/angularjs-datetime-picker.css"/>
+
+    <script src="bower_components/angularjs-datetime-picker/angularjs-datetime-picker.js"></script>
+
+    <script src="app.js"></script>
+
+    <script src="services/dataFactory.js"></script>
+    <script src="services/utilFactory.js"></script>
+
+    <script src="controllers.js"></script>
+    <script src="controllers/shiftDetailController.js"></script>
+    <script src="controllers/shiftController.js"></script>
+    <script src="controllers/homeController.js"></script>
+    <script src="controllers/loginCtrl.js"></script>
+
+</head>
+
+<!-- define angular controller -->
+<body ng-app="scotchApp">
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">Angular Routing Example</a>
+        </div>
+
+        <ul class="nav navbar-nav navbar-right">
+            <li><a ui-sref="home"><i class="fa fa-home"></i> Home</a></li>
+            <li><a ui-sref="about"><i class="fa fa-shield"></i> About</a></li>
+            <li><a ui-sref="contact"><i class="fa fa-comment"></i> Contact</a></li>
+            <li ng-hide="currentUserSignedIn"><a ui-sref="login"><i class="fa fa-comment"></i> Login</a></li>
+            <li ng-show="currentUserSignedIn"><a ui-sref="login" ng-click="doLogout()"><i class="fa fa-comment"></i>
+                Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div id="main">
+
+    <!-- angular templating -->
+    <!-- this is where content will be injected -->
+    <div ui-view></div>
+
+</div>
+
+<footer class="text-center">
+    <p>If there is any issues, please contact Admin
+    </p>
+
+    <p>Good luck!</p>
+</footer>
+
+</body>
+
+</html>

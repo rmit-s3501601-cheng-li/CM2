@@ -1,0 +1,34 @@
+<div>
+
+    <div class="text-center">
+        <h1>Home Page</h1>
+
+        <p>{{ message }}</p>
+    </div>
+
+    <table class="table table-hover">
+        <thead>
+        <th>User name</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Status</th>
+        </thead>
+        <tbody>
+        <tr ng-repeat="x in workers track by $index">
+            <td><a href="#/shift/{{x._id}}">{{ x.username }}</a></td>
+            <td>{{ x.fullName }}</td>
+            <td>{{ x.userType }}</td>
+
+            <td><span ng-if="x.disabled == false" class="kh-20170316_1" style="color: #4cae4c">Active</span><span
+                    ng-if="x.disabled == true"
+                    class="kh-20170316_2" style="color: #d43f3a">Disable</span>
+                <span ng-if="x.disabled == unidentified" class="kh-20170316_1" style="color: #4cae4c">Active</span>
+
+
+            </td>
+
+
+        </tr>
+        </tbody>
+    </table>
+</div>

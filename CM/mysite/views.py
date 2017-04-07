@@ -13,6 +13,8 @@ from django.core.files.storage import FileSystemStorage
 import os
 
 
+def home(request):
+    return render(request, 'index.html')
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  

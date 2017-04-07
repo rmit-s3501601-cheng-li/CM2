@@ -25,6 +25,6 @@ urlpatterns = [
     url(r'changePassword/$', views.changePassword),
     url(r'upload/$', views.upLoad),
     url(r'download/$', views.downLoad),
-    
+    url(r'home/$', views.home, name = 'home'),
     
 ]
