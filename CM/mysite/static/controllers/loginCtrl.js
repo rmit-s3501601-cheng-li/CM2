@@ -1,6 +1,4 @@
-/**
- * Created by leonnguyen on 18/02/2017.
- */
+
 scotchApp.controller('loginController', ['$scope', '$location', '$rootScope', '$http', '$cookies', 'dataFactory',
     function ($scope, $location, $rootScope, $http, $cookies, dataFactory) {
         console.log("loginController");

@@ -1,48 +1,48 @@
 // create the module and name it scotchApp
-var scotchApp = angular.module('scotchApp', ['ngCookies', 'ui.router', 'angularjs-datetime-picker']);
+var scotchApp = angular.module('scotchApp', ['ngCookies', 'ui.router', 'angularBootstrapNavTree']);
 
 scotchApp.config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider.state({
         name: 'home',
         url: '/',
         cache: false,
-        templateUrl: 'pages/home.html',
+        templateUrl: 'static/pages/home.html',
         controller: 'homeController'
     });
     $stateProvider.state({
         name: 'about',
         url: '/about',
         cache: false,
-        templateUrl: 'pages/about.html',
+        templateUrl: 'static/pages/about.html',
         controller: 'aboutController'
     });
     $stateProvider.state({
         name: 'contact',
         url: '/contact',
         cache: false,
-        templateUrl: 'pages/contact.html',
+        templateUrl: 'static/pages/contact.html',
         controller: 'contactController'
     });
     $stateProvider.state({
         name: 'login',
         url: '/login',
         cache: false,
-        templateUrl: 'pages/login.html',
+        templateUrl: 'static/pages/login.html',
         controller: 'loginController'
     });
     $stateProvider.state({
-        name: 'shift',
-        url: '/shift/:workerId',
+        name: 'users',
+        url: '/users',
         cache: false,
-        templateUrl: 'pages/shift.html',
-        controller: 'shiftController'
+        templateUrl: 'static/pages/users.html',
+        controller: 'userController'
     });
     //shiftDetail page
     $stateProvider.state({
         name: 'shiftDetail',
         url: '/shiftDetail/:shiftId',
         cache: false,
-        templateUrl: 'pages/shiftEdit.html',
+        templateUrl: 'static/pages/shiftEdit.html',
         controller: 'shiftDetailController'
     });
     // if none of the above states are matched, returned to login page

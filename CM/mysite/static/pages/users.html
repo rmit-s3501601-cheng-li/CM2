@@ -1,0 +1,33 @@
+<div class="container">
+    <div class="text-center">
+        <h1>USER MANAGEMENT </h1>
+
+        <p>this is user management page</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2 m-row">ID</div>
+        <div class="col-md-4 m-row">User name</div>
+
+        <div class="col-md-1 m-row">Status</div>
+        <div class="col-md-1 m-row">Action</div>
+    </div>
+    <br/>
+    <br/>
+
+    <div class="row" ng-repeat="x in users track by $index">
+        <div class="col-md-2 m-row"></div>
+        <div class="col-md-4 m-row"></div>
+
+        <div class="col-md-1 m-row">
+            <span ng-switch on="x.status">
+                    <span ng-switch-when="inactive" style="color: #d43f3a">{{x.status}}</span>
+                    <span ng-switch-when="active" style="color: #4cae4c">{{x.status}}</span>
+                </span>
+        </div>
+        <div class="col-md-1 m-row"><span class="btn btn-success"  style="color: #ffffff"
+                                          ng-click="endShift(x._id)">Edit</span></div>
+
+    </div>
+
+</div>

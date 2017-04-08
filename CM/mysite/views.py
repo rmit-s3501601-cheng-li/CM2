@@ -13,7 +13,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 
 
-def home(request):
+def homepage(request):
     return render(request, 'index.html')
 
 @api_view(http_method_names=['POST'])  
