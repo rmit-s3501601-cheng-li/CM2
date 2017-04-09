@@ -22,23 +22,18 @@ def adduser(request):
     adminKey=request.POST.get('adminkey', '')
     username= request.POST.get('username', '')
     password=request.POST.get('password', '')
-    repeat_password = request.POST.get('repeat_password', '')
     if adminKey!='iamadministrator':
-        return HttpResponse(HTTP_400_BAD_REQUEST)
+        return Response({'ststus':400})
     else:
-        if password == '' or repeat_password == '':
-            return HttpResponse(HTTP_400_BAD_REQUEST)
-        elif password != repeat_password:
-            return HttpResponse(HTTP_400_BAD_REQUEST)
         user=MyUser.objects.filter(username=request.POST.get('username', ''))
-        if user is not None:
-            return HttpResponse(HTTP_400_BAD_REQUEST)
+        if user.exists() is True:
+            return Response({'ststus':400})
         else:
             new_user=MyUser(username=request.POST.get('username', '')
                                 ,password=request.POST.get('password', ''),
-                                permission=request.POST.get('permission', ''))
+                                permission=request.POST.get('permission', 3))
             new_user.save()
-            return HttpResponse(HTTP_200_OK)
+            return Response({'ststus':200})
    
     
 @api_view(http_method_names=['POST'])  
@@ -49,7 +44,10 @@ def login(request):
     if user is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
-        user=MyUser.objects.get(username=request.POST.get('username', ''))
+        try:
+            user=MyUser.objects.get(username=request.POST.get('username', ''))
+        except:
+            return HttpResponse(HTTP_400_BAD_REQUEST)
         if user.permission==1:
             return Response({"adminkey":'iamadministrator'})
         else:
