@@ -39,19 +39,13 @@ def adduser(request):
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
 def login(request):  
-    user=MyUser.objects.filter(username=request.POST.get('username', '')
-                                ,password=request.POST.get('password', ''))
-    if user is None:
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    else:
-        try:
+    user=MyUser.objects.filter(username=request.POST.get('username', ''))
+    if user.exists() is True :
+        user=user.filter(password=request.POST.get('password', ''))
+        if user.exists() is True :
             user=MyUser.objects.get(username=request.POST.get('username', ''))
-        except:
-            return HttpResponse(HTTP_400_BAD_REQUEST)
-        if user.permission==1:
-            return Response({"adminkey":'iamadministrator'})
-        else:
-            return HttpResponse(HTTP_200_OK)
+            return Response({'ststus':300},{'permission':user.items.permission})
+    return Response({'ststus':400})
     
     
     
