@@ -44,8 +44,10 @@ def login(request):
         user=user.filter(password=request.POST.get('password', ''))
         if user.exists() is True :
             loguser=MyUser.objects.get(username=request.POST.get('username', ''))
-            if loguser.permission is 3:
-                return Response({'ststus':300},{'permission':111})
+            if loguser.permission == 1:
+                return Response([{'ststus':300},{'permission':loguser.permission},{'adminkey':'iamadministrator'}])
+            else:
+                return Response([{'ststus':300},{'permission':loguser.permission}])
     return Response({'ststus':400})
     
     
