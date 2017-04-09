@@ -20,11 +20,13 @@ from mysite import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'login$', views.login),
-    url(r'addUser/', views.adduser),
-    url(r'getUserList/$', views.getUserList),
-    url(r'changePassword/$', views.changePassword),
+    url(r'addUser$', views.adduser),
+    url(r'getUserList$', views.getUserList),
+    url(r'changePassword$', views.changePassword),
     url(r'upload/$', views.upLoad),
     url(r'download/$', views.downLoad),
     url(r'^$', views.homepage, name = 'home'),
+    url(r'getUserDetail$', views.getUserDetail),
+    url(r'deleteUser$', views.deleteUser),
     
 ]

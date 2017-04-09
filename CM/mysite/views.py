@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets,permissions,status
+from rest_framework import viewsets, permissions, status
 from models import MyUser
 from django.db.models.query import QuerySet
 from rest_framework.views import APIView
@@ -11,6 +11,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from django.http.response import HttpResponse
 from django.core.files.storage import FileSystemStorage
 import os
+import json
 
 
 def homepage(request):
@@ -18,84 +19,79 @@ def homepage(request):
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
-def adduser(request):  
-    adminKey=request.POST.get('adminkey', '')
-    username= request.POST.get('username', '')
-    password=request.POST.get('password', '')
-    if adminKey!='iamadministrator':
+def adduser(request): 
+    infor = json.loads(request.body)
+    username = infor['username']
+    password = infor['password']
+    permission = infor['permission']
+    user = MyUser.objects.filter(username=username)
+    if user.exists() is True:
         return Response({'ststus':400})
     else:
-        user=MyUser.objects.filter(username=request.POST.get('username', ''))
-        if user.exists() is True:
-            return Response({'ststus':400})
-        else:
-            new_user=MyUser(username=request.POST.get('username', '')
-                                ,password=request.POST.get('password', ''),
-                                permission=request.POST.get('permission', 3))
-            new_user.save()
-            return Response({'ststus':200})
+        new_user = MyUser(username=username
+                                , password=password,
+                                permission=permission)
+        new_user.save()
+        return Response({'ststus':200})
    
     
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
 def login(request):  
-    user=MyUser.objects.filter(username=request.POST.get('username', ''))
+    infor = json.loads(request.body)
+    user = MyUser.objects.filter(username=infor['username'])
     if user.exists() is True :
-        user=user.filter(password=request.POST.get('password', ''))
+        user = user.filter(password=infor['password'])
         if user.exists() is True :
-            loguser=MyUser.objects.get(username=request.POST.get('username', ''))
+            loguser = MyUser.objects.get(username=infor['username'])
             if loguser.permission == 1:
-                return Response([{'ststus':300},{'permission':loguser.permission},{'adminkey':'iamadministrator'}])
+                return Response({'status':200, 'permission':loguser.permission, 'adminkey':'iamadministrator'})
             else:
-                return Response([{'ststus':300},{'permission':loguser.permission}])
-    return Response({'ststus':400})
+                return Response({'status':200, 'permission':loguser.permission})
+    return Response({'status':400})
+
     
     
     
 @api_view(http_method_names=['PUT'])  
 @permission_classes((permissions.AllowAny,))  
 def changePassword(request): 
-    userName=request.data.get('username','')
-    newpassword=request.data.get('password','')
-    re_newpassword=request.data.get('re_password','')
-    user=MyUser.objects.filter(username=userName)
-    if user is None:
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    if newpassword == '' or re_newpassword == '':
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    elif newpassword != re_newpassword:
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    else:
-        user=MyUser.objects.get(username=userName)
-        user.password=newpassword
-        user.save()
-        return HttpResponse(HTTP_200_OK)
+    infor = json.loads(request.body)
+    ID=infor['userId']
+    password=infor['password']
+    user = MyUser.objects.get(id=ID)
+    user.password = password
+    user.save()
+    return Response({'status':200})
     
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
 def getUserList(request):
-    adminKey=request.POST.get('adminkey', '')
-    if adminKey!='iamadministrator':
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    else:
-        user_list=MyUser.objects.all().values_list('username')
-        return Response(user_list)
 
-@api_view(http_method_names=['DELETE'])
+    user_list = MyUser.objects.all().values_list('username', 'id')
+              
+    return Response(user_list)
+
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.AllowAny,))  
+def getUserDetail(request):
+
+    infor = json.loads(request.body)
+    ID=infor['userId']
+    user=MyUser.objects.get(id=ID)
+    
+              
+    return Response({'username':user.username})
+
+
+@api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))  
 def deleteUser(request):
-    adminKey=request.data.get('adminkey', '')
-    userName=request.data.get('username','')
-    if adminKey!='iamadministrator':
-        return HttpResponse(HTTP_400_BAD_REQUEST)
-    else:
-        user=MyUser.objects.filter(username=userName)
-        if user is None:
-            return HttpResponse(HTTP_400_BAD_REQUEST)
-        else:
-            MyUser.objects.filter(username=userName).delete()
-            return HttpResponse(HTTP_200_OK)
+    infor = json.loads(request.body)
+    ID=infor['userId']
+    user = MyUser.objects.get(id=ID).delete()
+    return Response({'ststus':200})
             
 
 
@@ -104,8 +100,8 @@ def deleteUser(request):
 @permission_classes((permissions.AllowAny,))
 def upLoad(request):
 
-    newFile =request.FILES.get('myfile', None) 
-    path=request.POST.get('path', None)
+    newFile = request.FILES.get('myfile', None) 
+    path = request.POST.get('path', None)
     if newFile is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     elif path is None:
@@ -116,22 +112,22 @@ def upLoad(request):
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
         os.remove(path)
-        #need update database
-        destination = open(os.path.join(fpath,newFile.name),'wb+')
+        # need update database
+        destination = open(os.path.join(fpath, newFile.name), 'wb+')
         for chunk in newFile.chunks():     
             destination.write(chunk)   
-        #update database
+        # update database
         destination.close()  
         return HttpResponse(HTTP_200_OK)
 
 
-    #myFile =request.FILES['myfile']
+    # myFile =request.FILES['myfile']
 
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def addFile(request):
-    newFile =request.FILES.get('myfile', None)
-    path=request.POST.get('path', None)
+    newFile = request.FILES.get('myfile', None)
+    path = request.POST.get('path', None)
     if newFile is None:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     elif path is None:
@@ -140,10 +136,10 @@ def addFile(request):
     if os.path.exists(path) is False:
         return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
-        destination = open(os.path.join(path,newFile.name),'wb+')
+        destination = open(os.path.join(path, newFile.name), 'wb+')
         for chunk in newFile.chunks():     
             destination.write(chunk)   
-        #update database
+        # update database
         destination.close()  
         return HttpResponse(HTTP_200_OK)
     
@@ -155,9 +151,9 @@ def addFile(request):
 @permission_classes((permissions.AllowAny,))
 def downLoad(request):
     
-    #Change local path when doing test
+    # Change local path when doing test
     fileName = basePath + request.data.get('path', '')
-    def file_iterator(file, chunk_size = 512):
+    def file_iterator(file, chunk_size=512):
         with open(file) as f:
             while True:
                 c = f.read(chunk_size)
