@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
-from models import MyUser
+from models import MyUser,Registration_Request
 from django.db.models.query import QuerySet
 from rest_framework.views import APIView
 from django.template.context_processors import request
@@ -14,30 +14,46 @@ import os
 import json
 
 
-def homepage(request):
+def Homepage(request):
     return render(request, 'index.html')
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
-def adduser(request): 
+def AddUser(request): 
     infor = json.loads(request.body)
-    username = infor['username']
-    password = infor['password']
-    permission = infor['permission']
-    user = MyUser.objects.filter(username=username)
-    if user.exists() is True:
-        return Response({'ststus':400})
-    else:
-        new_user = MyUser(username=username
-                                , password=password,
-                                permission=permission)
+    requestID = infor['requestID']
+    try:
+        registration = Registration_Request.objects.get(id=requestID)
+        new_user=MyUser(username=registraton.username , 
+                        password=registraton.password,
+                        permission=registration.permission)
         new_user.save()
         return Response({'ststus':200})
+    except:
+        return Response({'ststus':400})
+    
+
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.AllowAny,))  
+def Registory(request): 
+    registration=json.loads(request.body)
+    username=registration['username']
+    password=registration['password']
+    permission=registration['permission']
+    comment=registration['comment']
+    new_request=Registration_Request(Username=username,Password=password,
+                                     Permission=permission,Comment=comment)
+    new_request.save()
+    return Response({'ststus':200})
+    
+
+    
+    
    
     
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
-def login(request):  
+def Login(request):  
     infor = json.loads(request.body)
     user = MyUser.objects.filter(username=infor['username'])
     if user.exists() is True :
@@ -53,9 +69,9 @@ def login(request):
     
     
     
-@api_view(http_method_names=['PUT'])  
+@api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
-def changePassword(request): 
+def ChangePassword(request): 
     infor = json.loads(request.body)
     ID=infor['userId']
     password=infor['password']
@@ -65,13 +81,15 @@ def changePassword(request):
     return Response({'status':200})
     
 
-@api_view(http_method_names=['POST'])  
+@api_view(http_method_names=['GET'])  
 @permission_classes((permissions.AllowAny,))  
-def getUserList(request):
+def GetRequestList(request):
 
-    user_list = MyUser.objects.all().values_list('username', 'id')
+
+    user_list = Registration_Request.objects.all().values_list('username', 'id','permission','comment')
               
     return Response(user_list)
+
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))  
@@ -85,9 +103,9 @@ def getUserDetail(request):
     return Response({'username':user.username})
 
 
-@api_view(http_method_names=['POST'])
+@api_view(http_method_names=['DELETE'])
 @permission_classes((permissions.AllowAny,))  
-def deleteUser(request):
+def DeleteUser(request):
     infor = json.loads(request.body)
     ID=infor['userId']
     user = MyUser.objects.get(id=ID).delete()

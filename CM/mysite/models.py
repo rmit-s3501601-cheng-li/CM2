@@ -10,4 +10,12 @@ class MyUser(models.Model):
     password=models.CharField(max_length=20)
     permission = models.IntegerField(default=3)
     
+class Registration_Request(models.Model):
+    Username=models.CharField(max_length=15)
+    Password=models.CharField(max_length=20)
+    Permission=models.IntegerField(default=3)
+    Comment=models.CharField(max_length=50)
+    
+
+    
     
