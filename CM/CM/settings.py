@@ -76,14 +76,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CM.wsgi.application'
 
-REST_FRAMEWORK={'DEFAULT_PERMISSION_CLASSES':( 'rest_framework.permissions.IsAuthenticated',),
-                 'DEFAULT_AUTHENTICATION_CLASSES': (
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
-                }
-
+}
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -143,6 +145,12 @@ CORS_ALLOW_METHODS = (
     'POST',
     'PUT',
 )
+
+JWT_AUTH = {
+    'JWT_RESPONSE_PAYLOAD_HANDLER':
+    #'rest_framework_jwt.utils.jwt_response_payload_handler',
+    'mysite.views.jwt_response_payload_handler',
+}
 
 
 AUTH_PROFILE_MODULE = 'djangoadmin.mysite.UserProfile'

@@ -13,13 +13,14 @@ import os
 import json
 from models import Registration_Request,UserProfile
 from django.contrib.auth.models import User
+from django.contrib import auth
+
 
 
 
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
-@csrf_exempt  
 def Register(request): 
     registration=json.loads(request.body)
     username=registration['username']
@@ -44,9 +45,9 @@ def AddUser(request):
     registration = Registration_Request.objects.get(id=requestID)
     new_user=User.objects.create_user(username=registration.Username,password=registration.Password,email=registration.Email)
     new_user.save()
-    new_user=User.objects.get(id=new_user.id)
+    new_user=User.objects.get(username=new_user.username)
     new_user.userprofile.permission=registration.Permission
-    new_user.save()
+    new_user.userprofile.save()
     return Response({'ststus':200})
     
     
@@ -55,13 +56,39 @@ def AddUser(request):
 @permission_classes((permissions.AllowAny,))  
 def Login(request):  
     infor = json.loads(request.body)
-    user = MyUser.objects.filter(username=infor['username'])
-    if user.exists() is True :
-        user = user.filter(password=infor['password'])
-        if user.exists() is True :
-            loguser = MyUser.objects.get(username=infor['username'])
-            if loguser.permission == 1:
-                return Response({'status':200, 'permission':loguser.permission, 'adminkey':'iamadministrator'})
-            else:
-                return Response({'status':200, 'permission':loguser.permission})
-    return Response({'status':400})
+    username=infor['username']
+    password=infor['password']
+    user = auth.authenticate(username=username, password=password)
+    if user is not None:
+        return Response({'status':200, 'permission':user.userprofile.permission})
+    else:
+        return Response({'status':400})
+
+
+
+
+
+
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.AllowAny,))  
+def GetRequestList(request):
+    user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
+              
+    return Response(user_list)
+
+
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.IsAuthenticated,))  
+def changePassword(request):
+    infor = json.loads(request.body)
+    password=infor['password']
+    user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
+              
+    return Response(user_list)
+
+def jwt_response_payload_handler(token, user=None, request=None):
+    return {
+        'token': token,
+        'permission': user.userprofile.permission
+    }
+

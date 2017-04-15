@@ -8,7 +8,7 @@ from django.db.models.signals import post_save
 # Create your models here.
 class UserProfile(models.Model):
     user =  models.OneToOneField(User)
-    permission = models.IntegerField(default=3,null=True)
+    permission = models.IntegerField(null=True)
     
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
