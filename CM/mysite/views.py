@@ -75,7 +75,28 @@ def RejectRequest(request):
             return Response({'ststus':200})
         except:
             return Response({'ststus':400})
-    
+
+
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.IsAdminUser,))  
+def AddAdminUser(request): 
+    infor = json.loads(request.body)
+    username=infor['username']
+    password=infor['password']
+    email=infor['email']
+    try:
+        user=User.objects.filter(username=username)
+        if user.exists() is True:
+            return Response({'ststus':400})
+        else:
+            new_user=User.objects.create_user(username=username,password=password,email=email)
+            new_user.save()
+            new_user=User.objects.get(username=new_user.username)
+            new_user.userprofile.permission=1
+            new_user.userprofile.save()
+            return Response({'ststus':200})
+    except:
+        return Response({'ststus':400})
     
     
 @api_view(http_method_names=['POST'])  
@@ -91,16 +112,17 @@ def Login(request):
         return Response({'status':400})
 
 
-
-
-
-
-@api_view(http_method_names=['GET'])  
+@api_view(http_method_names=['POST'])  
 @permission_classes((permissions.IsAuthenticated))  
 def GetRequestList(request):
-    user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
-              
-    return Response(user_list)
+    infor = json.loads(request.body)
+    permission=infor['permission']
+    if permission !=1:
+        return Response({'ststus':400})
+    else:
+        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
+        return Response(user_list)
+    
 
 
 @api_view(http_method_names=['POST'])  
@@ -116,11 +138,23 @@ def ChangePassword(request):
         return Response({'status':200})
     except:
         return Response({'status':400})
+    
+    
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.AllowAny,))
+def ForgetPassword(request): 
+    infor = json.loads(request.body)
+    username=infor['username']
+    try:
+        user=User.objects.get(username=username)
+        email=user.email
+        return Response({'status':200})
+    except:
+        return Response({'status':400})
+        
+           
+    
+    
 
-def jwt_response_payload_handler(token, user=None, request=None):
-    return {
-        'token': token,
-        'userID':user.id,
-        'permission': user.userprofile.permission
-    }
+
 
