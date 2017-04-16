@@ -20,11 +20,11 @@ post_save.connect(create_user_profile, sender=User)
 
     
 class Registration_Request(models.Model):
-    Username=models.CharField(max_length=15)
-    Password=models.CharField(max_length=20)
-    Permission=models.IntegerField(default=3)
-    Email=models.CharField(max_length=25)
-    Comment=models.CharField(max_length=50)
+    Username=models.CharField(max_length=15,null=False)
+    Password=models.CharField(max_length=20,null=False)
+    Permission=models.IntegerField(default=3,null=False)
+    Email=models.CharField(max_length=25,null=False)
+    Comment=models.CharField(max_length=50,null=True)
     
 
     

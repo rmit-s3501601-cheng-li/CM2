@@ -40,41 +40,33 @@ def Register(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAuthenticated,))  
+@permission_classes((permissions.IsAdminUser,))  
 def AcceptRequest(request): 
     infor = json.loads(request.body)
-    permission=infor['permission']
-    if permission !=1:
+    requestID = infor['requestID'] 
+    try: 
+        registration = Registration_Request.objects.get(id=requestID)
+        new_user=User.objects.create_user(username=registration.Username,password=registration.Password,email=registration.Email)
+        new_user.save()
+        new_user=User.objects.get(username=new_user.username)
+        new_user.userprofile.permission=registration.Permission
+        new_user.userprofile.save()
+        registration.delete()
+        return Response({'ststus':200})
+    except:
         return Response({'ststus':400})
-    else:
-        requestID = infor['requestID'] 
-        try: 
-            registration = Registration_Request.objects.get(id=requestID)
-            new_user=User.objects.create_user(username=registration.Username,password=registration.Password,email=registration.Email)
-            new_user.save()
-            new_user=User.objects.get(username=new_user.username)
-            new_user.userprofile.permission=registration.Permission
-            new_user.userprofile.save()
-            registration.delete()
-            return Response({'ststus':200})
-        except:
-            return Response({'ststus':400})
         
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAuthenticated,))  
+@permission_classes((permissions.IsAdminUser,))  
 def RejectRequest(request): 
     infor = json.loads(request.body)
-    permission=infor['permission']
-    if permission !=1:
+    requestID = infor['requestID']
+    try: 
+        registration = Registration_Request.objects.get(id=requestID)
+        registration.delete()
+        return Response({'ststus':200})
+    except:
         return Response({'ststus':400})
-    else:
-        requestID = infor['requestID']
-        try: 
-            registration = Registration_Request.objects.get(id=requestID)
-            registration.delete()
-            return Response({'ststus':200})
-        except:
-            return Response({'ststus':400})
 
 
 @api_view(http_method_names=['POST'])  
@@ -89,10 +81,10 @@ def AddAdminUser(request):
         if user.exists() is True:
             return Response({'ststus':400})
         else:
-            new_user=User.objects.create_user(username=username,password=password,email=email)
+            new_user=User.objects.create_superuser(username,email,password)
             new_user.save()
             new_user=User.objects.get(username=new_user.username)
-            new_user.userprofile.permission=1
+            new_user.userprofile.permission=1     
             new_user.userprofile.save()
             return Response({'ststus':200})
     except:
@@ -112,16 +104,14 @@ def Login(request):
         return Response({'status':400})
 
 
-@api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAuthenticated))  
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.IsAdminUser,))  
 def GetRequestList(request):
-    infor = json.loads(request.body)
-    permission=infor['permission']
-    if permission !=1:
-        return Response({'ststus':400})
-    else:
+    try:
         user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
         return Response(user_list)
+    except:
+        return Response({'status':400})
     
 
 
@@ -133,7 +123,7 @@ def ChangePassword(request):
     userID=infor['userID']
     try:
         user=User.objects.get(id=userID)
-        user.password=password
+        user.set_password(password)
         user.save()
         return Response({'status':200})
     except:
