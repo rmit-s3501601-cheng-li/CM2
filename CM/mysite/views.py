@@ -31,24 +31,52 @@ def Register(request):
     try:
         new_request=Registration_Request(Username=username,Password=password,email=email,
                                      Permission=permission,Comment=comment)
-        new_request.save()
-        return Response({'ststus':200})
+        user=User.objects.filter(username=username)
+        if user.exists() is False:
+            new_request.save()
+            return Response({'ststus':200})
+        else:
+            return Response({'ststus':400})
     except:
         return Response({'ststus':400})
 
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.IsAuthenticated,))  
-def AddUser(request): 
+def AcceptRequest(request): 
     infor = json.loads(request.body)
-    requestID = infor['requestID']  
-    registration = Registration_Request.objects.get(id=requestID)
-    new_user=User.objects.create_user(username=registration.Username,password=registration.Password,email=registration.Email)
-    new_user.save()
-    new_user=User.objects.get(username=new_user.username)
-    new_user.userprofile.permission=registration.Permission
-    new_user.userprofile.save()
-    return Response({'ststus':200})
+    permission=infor['permission']
+    if permission !=1:
+        return Response({'ststus':400})
+    else:
+        requestID = infor['requestID'] 
+        try: 
+            registration = Registration_Request.objects.get(id=requestID)
+            new_user=User.objects.create_user(username=registration.Username,password=registration.Password,email=registration.Email)
+            new_user.save()
+            new_user=User.objects.get(username=new_user.username)
+            new_user.userprofile.permission=registration.Permission
+            new_user.userprofile.save()
+            registration.delete()
+            return Response({'ststus':200})
+        except:
+            return Response({'ststus':400})
+        
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.IsAuthenticated,))  
+def RejectRequest(request): 
+    infor = json.loads(request.body)
+    permission=infor['permission']
+    if permission !=1:
+        return Response({'ststus':400})
+    else:
+        requestID = infor['requestID']
+        try: 
+            registration = Registration_Request.objects.get(id=requestID)
+            registration.delete()
+            return Response({'ststus':200})
+        except:
+            return Response({'ststus':400})
     
     
     
@@ -70,7 +98,7 @@ def Login(request):
 
 
 @api_view(http_method_names=['GET'])  
-@permission_classes((permissions.AllowAny,))  
+@permission_classes((permissions.IsAuthenticated))  
 def GetRequestList(request):
     user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
               
@@ -79,7 +107,7 @@ def GetRequestList(request):
 
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.IsAuthenticated,))  
-def changePassword(request):
+def ChangePassword(request):
     infor = json.loads(request.body)
     password=infor['password']
     user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
@@ -89,6 +117,7 @@ def changePassword(request):
 def jwt_response_payload_handler(token, user=None, request=None):
     return {
         'token': token,
+        'userID':user.id,
         'permission': user.userprofile.permission
     }
 
