@@ -6,8 +6,6 @@ from django.template.context_processors import request
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
-from django.http.response import HttpResponse
 from django.core.files.storage import FileSystemStorage
 import os
 import json
@@ -110,9 +108,14 @@ def GetRequestList(request):
 def ChangePassword(request):
     infor = json.loads(request.body)
     password=infor['password']
-    user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
-              
-    return Response(user_list)
+    userID=infor['userID']
+    try:
+        user=User.objects.get(id=userID)
+        user.password=password
+        user.save()
+        return Response({'status':200})
+    except:
+        return Response({'status':400})
 
 def jwt_response_payload_handler(token, user=None, request=None):
     return {
