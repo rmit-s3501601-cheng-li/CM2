@@ -27,16 +27,17 @@ def Register(request):
     email=registration['email']
     comment=registration['comment']
     try:
-        new_request=Registration_Request(Username=username,Password=password,email=email,
-                                     Permission=permission,Comment=comment)
         user=User.objects.filter(username=username)
         if user.exists() is False:
+            new_request=Registration_Request(Username=username,Password=password,Email=email,
+                                             Permission=permission,Comment=comment)
             new_request.save()
             return Response({'ststus':200})
+        
         else:
-            return Response({'ststus':400})
+            return Response({'ststus':500})
     except:
-        return Response({'ststus':400})
+        return Response({'ststus':600})
 
 
 @api_view(http_method_names=['POST'])  

@@ -16,12 +16,12 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from mysite import views
-from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_jwt.views import obtain_jwt_token 
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^register$', views.Register),
-    url(r'^login&', obtain_jwt_token),
+    url(r'^api-token-auth$', obtain_jwt_token),
     url(r'^getRequestList$', views.GetRequestList), 
     url(r'^acceptRequest$', views.AcceptRequest),
     url(r'^rejectRequest&', views.RejectRequest),
