@@ -20,13 +20,13 @@ from rest_framework_jwt.views import obtain_jwt_token
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^register$', views.Register),
-    url(r'^login&', obtain_jwt_token),
-    url(r'^getRequestList$', views.GetRequestList), 
-    url(r'^acceptRequest$', views.AcceptRequest),
-    url(r'^rejectRequest&', views.RejectRequest),
-    url(r'^addAdminUser&', views.AddAdminUser),
-    url(r'^changePassword&', views.ChangePassword),
+    url(r'register$', views.Register),
+    url(r'api-token-auth/&', obtain_jwt_token),
+    url(r'getRequestList$', views.GetRequestList), 
+    url(r'acceptRequest$', views.AcceptRequest),
+    url(r'rejectRequest&', views.RejectRequest),
+    url(r'addAdminUser&', views.AddAdminUser),
+    url(r'changePassword&', views.ChangePassword),
 
 
 
