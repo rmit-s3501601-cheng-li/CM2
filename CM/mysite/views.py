@@ -112,7 +112,7 @@ def Login(request):
 @permission_classes((permissions.IsAdminUser,))  
 def GetRequestList(request):
     try:
-        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
+        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment','Email')
         return Response(user_list)
     except:
         return Response({'status':400})
@@ -149,6 +149,51 @@ def ForgetPassword(request):
            
     
     
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.is_authenticated,))
+def upLoad(request):
 
+    newFile = request.FILES.get('myfile', None) 
+    path = request.POST.get('path', None)
+    if newFile is None:
+        return Response({'status':400})
+    elif path is None:
+        return Response({'status':400})
+    
+    fpath , fname = os.path.split(path)
+    if os.path.exists(path) is False:
+        return Response({'status':400})
+    else:
+        os.remove(path)
+        # need update database
+        destination = open(os.path.join(fpath, newFile.name), 'wb+')
+        for chunk in newFile.chunks():     
+            destination.write(chunk)   
+        # update database
+        destination.close()  
+        return Response({'status':200})
+
+
+    # myFile =request.FILES['myfile']
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.IsAuthenticated,))
+def addFile(request):
+    newFile = request.FILES.get('myfile', None)
+    path = request.POST.get('path', None)
+    if newFile is None:
+        return Response({'status':400})
+    elif path is None:
+        return Response({'status':400})
+    
+    if os.path.exists(path) is False:
+        return Response({'status':400})
+    else:
+        destination = open(os.path.join(path, newFile.name), 'wb+')
+        for chunk in newFile.chunks():     
+            destination.write(chunk)   
+        # update database
+        destination.close()  
+        return Response({'status':200})
 
 
