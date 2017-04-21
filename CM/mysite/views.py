@@ -27,11 +27,6 @@ def Register(request):
     email=registration['email']
     comment=registration['comment']
     try:
-<<<<<<< Updated upstream
-=======
-        new_request=Registration_Request(Username=username,Password=password,Email=email,
-                                     Permission=permission,Comment=comment)
->>>>>>> Stashed changes
         user=User.objects.filter(username=username)
         if user.exists() is False:
             new_request=Registration_Request(Username=username,Password=password,Email=email,
