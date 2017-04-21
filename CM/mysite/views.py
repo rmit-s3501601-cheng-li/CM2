@@ -27,22 +27,23 @@ def Register(request):
     email=registration['email']
     comment=registration['comment']
     try:
-<<<<<<< Updated upstream
-=======
-        new_request=Registration_Request(Username=username,Password=password,Email=email,
-                                     Permission=permission,Comment=comment)
->>>>>>> Stashed changes
         user=User.objects.filter(username=username)
+        
+        
         if user.exists() is False:
-            new_request=Registration_Request(Username=username,Password=password,Email=email,
+            user=Registration_Request.objects.filter(Username=username)
+            if user.exists() is False:
+                new_request=Registration_Request(Username=username,Password=password,Email=email,
                                              Permission=permission,Comment=comment)
-            new_request.save()
-            return Response({'ststus':200})
+                new_request.save()
+                return Response({'ststus':200})
+            else:
+            return Response({'ststus':400})
         
         else:
-            return Response({'ststus':500})
+            return Response({'ststus':400})
     except:
-        return Response({'ststus':600})
+        return Response({'ststus':400})
 
 
 @api_view(http_method_names=['POST'])  
