@@ -27,6 +27,11 @@ def Register(request):
     email=registration['email']
     comment=registration['comment']
     try:
+<<<<<<< Updated upstream
+=======
+        new_request=Registration_Request(Username=username,Password=password,Email=email,
+                                     Permission=permission,Comment=comment)
+>>>>>>> Stashed changes
         user=User.objects.filter(username=username)
         if user.exists() is False:
             new_request=Registration_Request(Username=username,Password=password,Email=email,
@@ -41,7 +46,7 @@ def Register(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def AcceptRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID'] 
@@ -58,7 +63,7 @@ def AcceptRequest(request):
         return Response({'ststus':400})
         
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']
@@ -71,7 +76,7 @@ def RejectRequest(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def AddAdminUser(request): 
     infor = json.loads(request.body)
     username=infor['username']
@@ -106,10 +111,10 @@ def Login(request):
 
 
 @api_view(http_method_names=['GET'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def GetRequestList(request):
     try:
-        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment')
+        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment', 'Email', 'Password')
         return Response(user_list)
     except:
         return Response({'status':400})
