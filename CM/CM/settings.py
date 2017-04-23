@@ -159,3 +159,12 @@ AUTH_PROFILE_MODULE = 'djangoadmin.mysite.UserProfile'
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '25'
+EMAIL_HOST_USER = 's3501601@student.emit.edu.au'
+EMAIL_HOST_PASSWORD = 'XIAOfeng1601'
+EMAIL_USE_TLS = True'

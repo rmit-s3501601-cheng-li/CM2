@@ -12,6 +12,7 @@ import json
 from models import Registration_Request,UserProfile
 from django.contrib.auth.models import User
 from django.contrib import auth
+from django.core.mail import send_mail, BadHeaderError
 
 
 
@@ -141,11 +142,15 @@ def ChangePassword(request):
 @permission_classes((permissions.AllowAny,))
 def ForgetPassword(request): 
     infor = json.loads(request.body)
+    email=infor['email']
     username=infor['username']
     try:
         user=User.objects.get(username=username)
-        email=user.email
-        return Response({'status':200})
+        if user.email==email:
+            send_mail('subject', 'message', 's3501601@student.rmit.edu.au', [email])
+            return Response({'status':200})
+        else:
+            return Response({'status':400})
     except:
         return Response({'status':400})
         
