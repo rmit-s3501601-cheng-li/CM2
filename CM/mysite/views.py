@@ -39,7 +39,7 @@ def Register(request):
                 new_request.save()
                 return Response({'ststus':200})
             else:
-            return Response({'ststus':400})
+                return Response({'ststus':400})
         
         else:
             return Response({'ststus':400})
@@ -48,7 +48,7 @@ def Register(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))  
+@permission_classes((permissions.IsAdminUser,))  
 def AcceptRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID'] 
@@ -65,7 +65,7 @@ def AcceptRequest(request):
         return Response({'ststus':400})
         
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))  
+@permission_classes((permissions.IsAdminUser,))  
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']
@@ -78,7 +78,7 @@ def RejectRequest(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))  
+@permission_classes((permissions.IsAdminUser,))  
 def AddAdminUser(request): 
     infor = json.loads(request.body)
     username=infor['username']

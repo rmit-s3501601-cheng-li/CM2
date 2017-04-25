@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'api-token-auth$', obtain_jwt_token),
     url(r'getRequestList$', views.GetRequestList), 
     url(r'acceptRequest$', views.AcceptRequest),
-    url(r'rejectRequest£¤', views.RejectRequest),
+    url(r'rejectRequest$', views.RejectRequest),
     url(r'addAdminUser$', views.AddAdminUser),
     url(r'changePassword$', views.ChangePassword),
     url(r'forgetPassword$', views.ForgetPassword),
