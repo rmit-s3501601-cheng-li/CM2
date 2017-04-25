@@ -27,7 +27,7 @@ urlpatterns = [
     url(r'rejectRequest', views.RejectRequest),
     url(r'addAdminUser', views.AddAdminUser),
     url(r'forgetPassword', views.ForgetPassword),
-    url(r'^changePassword&', views.ChangePassword),
+    url(r'changePassword', views.ChangePassword),
 
     
 ]
