@@ -160,14 +160,3 @@ AUTH_PROFILE_MODULE = 'djangoadmin.mysite.UserProfile'
 
 STATIC_URL = '/static/'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-EMAIL_HOST = 'smtp.gmail.com'
-
-EMAIL_PORT = '25'
-
-EMAIL_HOST_USER = 's3501601@student.rmit.edu.au'
-
-EMAIL_HOST_PASSWORD = 'XIAOfeng1601'
-
-EMAIL_USE_TLS = True

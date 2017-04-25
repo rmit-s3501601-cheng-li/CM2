@@ -18,7 +18,6 @@ from django.core.mail import send_mail, BadHeaderError, EmailMessage
 
 
 
-
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def Register(request): 
@@ -30,20 +29,26 @@ def Register(request):
     comment=registration['comment']
     try:
         user=User.objects.filter(username=username)
+        
+        
         if user.exists() is False:
-            new_request=Registration_Request(Username=username,Password=password,Email=email,
+            user=Registration_Request.objects.filter(Username=username)
+            if user.exists() is False:
+                new_request=Registration_Request(Username=username,Password=password,Email=email,
                                              Permission=permission,Comment=comment)
-            new_request.save()
-            return Response({'ststus':200})
+                new_request.save()
+                return Response({'ststus':200})
+            else:
+            return Response({'ststus':400})
         
         else:
-            return Response({'ststus':500})
+            return Response({'ststus':400})
     except:
-        return Response({'ststus':600})
+        return Response({'ststus':400})
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def AcceptRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID'] 
@@ -60,7 +65,7 @@ def AcceptRequest(request):
         return Response({'ststus':400})
         
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']
@@ -73,7 +78,7 @@ def RejectRequest(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def AddAdminUser(request): 
     infor = json.loads(request.body)
     username=infor['username']
@@ -108,7 +113,7 @@ def Login(request):
 
 
 @api_view(http_method_names=['GET'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def GetRequestList(request):
     try:
         user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment', 'Email', 'Password')
@@ -137,17 +142,8 @@ def ChangePassword(request):
 @permission_classes((permissions.AllowAny,))
 def ForgetPassword(request): 
     infor = json.loads(request.body)
-    email = infor['email']
-    username=infor['username']
 
-    user=User.objects.get(username=username)
-    if user.email==email:
-        email = EmailMessage('subject','mseeage', to = [email])
-        email.send()
-        return Response({'status':200})
-    else:
-    
-        return Response({'status':400})
+    return Response({'status':400})
     
         
            
