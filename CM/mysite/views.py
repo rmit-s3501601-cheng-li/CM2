@@ -183,7 +183,7 @@ def FirstSearch(request):
         
         
 
-@api_view(http_method_names=['GET'])  
+@api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def ViewFile(request): 
     infor = json.loads(request.body)
