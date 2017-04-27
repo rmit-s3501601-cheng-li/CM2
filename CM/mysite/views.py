@@ -200,7 +200,7 @@ def ViewFile(request):
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def DownloadFile(request): 
-    pass    
+    return Response({'status':400})   
 
 
 
