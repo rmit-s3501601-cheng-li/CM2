@@ -120,7 +120,7 @@ def GetRequestList(request):
 
 
 @api_view(http_method_names=['GET'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.IsAuthenticated,))  
 def ChangePassword(request):
     infor = json.loads(request.body)
     password=infor['password']
@@ -148,12 +148,13 @@ def ForgetPassword(request):
     
 
         
-    
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.IsAuthenticated,))   
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    if type=='title':
+    if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
@@ -172,7 +173,7 @@ def FirstSearch(request):
     elif type=='study reference':
         book_list=book.objects.filter(study_reference=keyword).values_list('id','titles','monograph_part','file_ownership')
         return Response(book_list)
-    elif type=='study id'
+    
     else:
         return Response({'status':400})
     
