@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'addAdminUser$', views.AddAdminUser),
     url(r'changePassword$', views.ChangePassword),
     url(r'forgetPassword$', views.ForgetPassword),
-    url(r'addbook$', views.ViewFile),
+    url(r'viewFile$', views.ViewFile),
     url(r'search$', views.FirstSearch),
 
 
