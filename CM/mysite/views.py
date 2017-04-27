@@ -12,7 +12,7 @@ import json
 from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 
 
 
@@ -156,8 +156,8 @@ def FirstSearch(request):
     type=infor['type']
     keyword=infor['keyword']
     if type=='Title':
-        book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
-        other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
+        other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -203,10 +203,32 @@ def ViewFile(request):
     
     
     
-@api_view(http_method_names=['POST'])  
+@api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
-def DownloadFile(request): 
-    return Response({'status':400})   
+def download(request):
+
+    infor = json.loads(request.body)
+    bookID=infor['id']
+    file=book.objects.get(id=bookID)
+    return Response({'path':file.path}) 
+    # path = '/Users/kaidiyu/Desktop' + file.path
+    # # fileName = basePath + request.data.get('path', '')
+    # def file_iterator(file, chunk_size = 512):
+    #     with open(file) as f:
+    #         while True:
+    #             c = f.read(chunk_size)
+    #             if c:
+    #                 yield c
+    #             else:
+    #                 break
+
+    # response = StreamingHttpResponse(file_iterator(path))
+    # response['Content-Type'] = 'application/octet-stream'
+    # response['Content-Disposition'] = 'attachment;filename="{0}"'.format(file.path)
+
+    # return response 
+
+
 
 
 

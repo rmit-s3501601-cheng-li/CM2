@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'forgetPassword$', views.ForgetPassword),
     url(r'viewFile$', views.ViewFile),
     url(r'search$', views.FirstSearch),
+    url(r'downloadFile$', views.download),
 
 
 
