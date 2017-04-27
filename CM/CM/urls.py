@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from mysite import views
-from rest_framework_jwt.views import obtain_jwt_token 
+from rest_framework_jwt.views import obtain_jwt_token
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -28,6 +28,11 @@ urlpatterns = [
     url(r'addAdminUser$', views.AddAdminUser),
     url(r'changePassword$', views.ChangePassword),
     url(r'forgetPassword$', views.ForgetPassword),
+    url(r'addbook$', views.ViewFile),
+    url(r'search$', views.FirstSearch),
+
+
+
 
     
 ]

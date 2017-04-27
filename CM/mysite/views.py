@@ -9,10 +9,9 @@ from rest_framework.decorators import api_view, permission_classes
 from django.core.files.storage import FileSystemStorage
 import os
 import json
-from models import Registration_Request,UserProfile
+from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
-from django.core.mail import send_mail, BadHeaderError, EmailMessage
 
 
 
@@ -29,18 +28,15 @@ def Register(request):
     comment=registration['comment']
     try:
         user=User.objects.filter(username=username)
-        
-        
         if user.exists() is False:
             user=Registration_Request.objects.filter(Username=username)
             if user.exists() is False:
                 new_request=Registration_Request(Username=username,Password=password,Email=email,
-                                             Permission=permission,Comment=comment)
+                                     Permission=permission,Comment=comment)
                 new_request.save()
                 return Response({'ststus':200})
             else:
                 return Response({'ststus':400})
-        
         else:
             return Response({'ststus':400})
     except:
@@ -113,18 +109,18 @@ def Login(request):
 
 
 @api_view(http_method_names=['GET'])  
-@permission_classes((permissions.AllowAny,))  
+@permission_classes((permissions.IsAdminUser,))  
 def GetRequestList(request):
     try:
-        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment', 'Email', 'Password')
+        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment','Email')
         return Response(user_list)
     except:
         return Response({'status':400})
     
 
 
-@api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAuthenticated,))  
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.IsAdminUser,))  
 def ChangePassword(request):
     infor = json.loads(request.body)
     password=infor['password']
@@ -142,13 +138,60 @@ def ChangePassword(request):
 @permission_classes((permissions.AllowAny,))
 def ForgetPassword(request): 
     infor = json.loads(request.body)
+    username=infor['username']
+    try:
+        user=User.objects.get(username=username)
+        email=user.email
+        return Response({'status':200})
+    except:
+        return Response({'status':400})
+    
 
-    return Response({'status':400})
+        
+    
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.AllowAny,))
+def FirstSearch(request): 
+    infor = json.loads(request.body)
+    type=infor['type']
+    keyword=infor['keyword']
+    if type=='title':
+        book_list=book.objects.filter(titles__contains=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
+        other_list=others.objects.filter(titles__contains=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
+        content = {
+        'book_list': book_list,
+        'other_list':other_list
+        }
+        return Response(content)
+    elif type=='type':
+        book_list=book.objects.filter(file_type=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
+        return Response(book_list)
+    elif type=='study reference':
+        book_list=book.objects.filter(study_reference=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
+        return Response(book_list)
+    else:
+        return Response({'status':400})
+    
     
         
-           
+        
+        
+        
+
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.AllowAny,))
+def ViewFile(request): 
+    pass
     
     
+    
+    
+    
+    
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.AllowAny,))
+def DownloadFile(request): 
+    pass    
 
 
 

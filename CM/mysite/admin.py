@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile,Registration_Request
+from .models import UserProfile,Registration_Request,book,others
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 
@@ -16,4 +16,6 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
 admin.site.register(Registration_Request)
+admin.site.register(book)
+admin.site.register(others)
 
