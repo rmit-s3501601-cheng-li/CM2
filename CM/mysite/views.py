@@ -153,7 +153,7 @@ def FirstSearch(request):
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    if type=='title':
+    if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
@@ -161,9 +161,9 @@ def FirstSearch(request):
         'other_list':other_list
         }
         return Response(content)
-    elif type=='type':
-        book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
-        other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+    elif type=='Type':
+        book_list=book.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
+        other_list=others.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -172,7 +172,9 @@ def FirstSearch(request):
     elif type=='study reference':
         book_list=book.objects.filter(study_reference=keyword).values_list('id','titles','monograph_part','file_ownership')
         return Response(book_list)
-    elif type=='study id'
+    elif type=='study id':
+        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        return Response(book_list)
     else:
         return Response({'status':400})
     
@@ -185,7 +187,10 @@ def FirstSearch(request):
 @api_view(http_method_names=['GET'])  
 @permission_classes((permissions.AllowAny,))
 def ViewFile(request): 
-    pass
+    infor = json.loads(request.body)
+    bookID=infor['id']
+    book=book.objects.get(id=bookID)
+    return Response({'path':book.path})
     
     
     
