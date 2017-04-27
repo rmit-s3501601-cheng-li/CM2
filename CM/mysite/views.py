@@ -155,7 +155,7 @@ def FirstSearch(request):
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    if type=='title':
+    if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
         other_list=others.objects.filter(titles__contains=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
         content = {
