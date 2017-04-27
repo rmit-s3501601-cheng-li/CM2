@@ -12,6 +12,7 @@ import json
 from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
+from django.http import HttpResponse
 
 
 
@@ -120,7 +121,7 @@ def GetRequestList(request):
 
 
 @api_view(http_method_names=['GET'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.IsAuthenticated,))  
 def ChangePassword(request):
     infor = json.loads(request.body)
     password=infor['password']
@@ -146,8 +147,10 @@ def ForgetPassword(request):
     except:
         return Response({'status':400})
     
-@api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))    
+
+
+@api_view(http_method_names=['POST'])   
+@permission_classes((permissions.IsAuthenticated,)) 
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
@@ -189,7 +192,11 @@ def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
-    return Response({'path':file.path})
+    return Response({'path':file.path})   
+    # path = '/Users/kaidiyu/Desktop' + file.path
+    # data = open("/Users/kaidiyu/Desktop/a1pg.pdf", "rb").read()
+    # return HttpResponse(data)
+
     
     
     
