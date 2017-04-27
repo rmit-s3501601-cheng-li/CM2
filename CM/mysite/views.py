@@ -188,8 +188,8 @@ def FirstSearch(request):
 def ViewFile(request): 
     infor = json.loads(request.body)
     bookID=infor['id']
-    book=book.objects.get(id=bookID)
-    return Response({'path':book.path})
+    file=book.objects.get(id=bookID)
+    return Response({'path':file.path})
     
     
     
