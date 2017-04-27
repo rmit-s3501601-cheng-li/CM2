@@ -149,26 +149,30 @@ def ForgetPassword(request):
 
         
     
-@api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    if type=='Title':
-        book_list=book.objects.filter(titles__contains=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
-        other_list=others.objects.filter(titles__contains=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
+    if type=='title':
+        book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
     elif type=='type':
-        book_list=book.objects.filter(file_type=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
-        return Response(book_list)
+        book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        content = {
+        'book_list': book_list,
+        'other_list':other_list
+        }
+        return Response(content)
     elif type=='study reference':
-        book_list=book.objects.filter(study_reference=keyword).values_list('titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(study_reference=keyword).values_list('id','titles','monograph_part','file_ownership')
         return Response(book_list)
+    elif type=='study id'
     else:
         return Response({'status':400})
     
