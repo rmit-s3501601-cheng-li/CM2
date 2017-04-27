@@ -146,9 +146,8 @@ def ForgetPassword(request):
     except:
         return Response({'status':400})
     
-
-        
-    
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.AllowAny,))    
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
