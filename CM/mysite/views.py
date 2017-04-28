@@ -229,6 +229,15 @@ def download(request):
     # return response 
 
 
-
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def deleteFile(request):
+    infor = json.loads(request.body)
+    bookID=infor['id']
+    file=book.objects.get(id=bookID)
+    file.delete()
+    return Response({'status':200})
+    
+    
 
 
