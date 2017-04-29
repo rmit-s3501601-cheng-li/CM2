@@ -237,6 +237,40 @@ def deleteFile(request):
     file=book.objects.get(id=bookID)
     file.delete()
     return Response({'status':200})
+
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def GetFileDetail(request):
+    infor = json.loads(request.body)
+    type=infor['type']
+    fileID=infor['id']
+    if type==book:
+        file=book.objects.get(id=fileID)
+        content={
+            'title': file.titles,
+            'category':file.monograph_part,
+            'studyReference':file.study_reference,
+            'studyID':file.study_ID,
+            'monograph':file.file_ownership,
+            'intervention':file.Intervention,
+            'fileType':file.file_type,
+            'modification':file.modification_time
+            }
+        return Response(content)
+    else:
+        file=others.objects.get(id=fileID)
+        content={
+            'title':file.titles,
+            'category':file.monograph_part,
+            'fileType':file.file_type,
+            'monograph':file.file_ownership,
+            'modification':file.modification_time
+            }
+        return Response(content)
+        
+        
     
     
 
