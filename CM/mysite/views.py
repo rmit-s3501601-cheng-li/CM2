@@ -248,7 +248,7 @@ def GetFileDetail(request):
     fileID=infor['id']
     if type==book:
         file=book.objects.get(id=fileID)
-        content={
+        contents={
             'title': file.titles,
             'category':file.monograph_part,
             'studyReference':file.study_reference,
@@ -258,7 +258,7 @@ def GetFileDetail(request):
             'fileType':file.file_type,
             'modification':file.modification_time
             }
-        return Response(content)
+        return Response(contents)
     else:
         file=others.objects.get(id=fileID)
         contents={
