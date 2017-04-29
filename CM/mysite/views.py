@@ -261,14 +261,14 @@ def GetFileDetail(request):
         return Response(content)
     else:
         file=others.objects.get(id=fileID)
-        content={
+        contents={
             'title':file.titles,
             'category':file.monograph_part,
             'fileType':file.file_type,
             'monograph':file.file_ownership,
             'modification':file.modification_time
             }
-        return Response(content)
+        return Response(contents)
         
         
     
