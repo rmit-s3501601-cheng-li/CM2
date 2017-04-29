@@ -13,6 +13,8 @@ from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.http import HttpResponse, StreamingHttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from serializers import BookSerializer
 
 
 
@@ -150,14 +152,17 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.IsAuthenticated,)) 
+@permission_classes((permissions.AllowAny,)) 
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
+    page=infor['page']
     if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
+        paginator = Paginator(book_list, 2)
+        books = paginator.page(page)
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -166,8 +171,10 @@ def FirstSearch(request):
     elif type=='Type':
         book_list=book.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
+        paginator = Paginator(book_list, 3)
+        books = paginator.page(page)
         content = {
-        'book_list': book_list,
+        'book_list': books.object_list,
         'other_list':other_list
         }
         return Response(content)
@@ -177,6 +184,13 @@ def FirstSearch(request):
     elif type=='study id':
         book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         return Response(book_list)
+    elif type=='all':
+        pass
+        
+        
+        
+        
+        
     else:
         return Response({'status':400})
     
