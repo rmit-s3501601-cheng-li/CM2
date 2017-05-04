@@ -167,10 +167,8 @@ def FirstSearch(request):
         }
         return Response(content)
     elif type=='Type':
-        book_list=book.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
-        other_list=others.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
-        paginator = Paginator(book_list, 2)
-        books = paginator.page(page)
+        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        other_list=others.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
         'book_list': books.object_list,
         'other_list':other_list
@@ -294,8 +292,7 @@ def EditFile(request):
     fileID=infor['id']
     newFile = request.FILES.get('myfile', None) 
     if newFile is None:
-        pass
-        
+        pass    
     if type =='pdf':
         file=book.objects.get(id=fileID)
     else:
