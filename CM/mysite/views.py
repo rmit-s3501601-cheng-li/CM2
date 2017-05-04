@@ -184,36 +184,36 @@ def FirstSearch(request):
         book_list=book.objects.all().values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.all().values_list('id','titles','monograph_part','file_ownership')
         content = {
-        'book_list': books.object_list,
+        'book_list': book_list,
         'other_list':other_list
         }
-        return Response(content)    
+        return Response(content)
     else:
         return Response({'status':400})
-    
-    
-        
-        
-        
-        
 
-@api_view(http_method_names=['POST'])  
+
+
+
+
+
+
+@api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
-def ViewFile(request): 
+def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
-    return Response({'path':file.path})   
+    return Response({'path':file.path})
     # path = '/Users/kaidiyu/Desktop' + file.path
     # data = open("/Users/kaidiyu/Desktop/a1pg.pdf", "rb").read()
     # return HttpResponse(data)
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def download(request):
