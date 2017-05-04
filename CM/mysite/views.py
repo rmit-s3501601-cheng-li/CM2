@@ -157,12 +157,12 @@ def FirstSearch(request):
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    page=infor['page']
+    # page=infor['page']
     if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         content = {
-        'book_list': books.object_list,
+        'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
@@ -170,7 +170,7 @@ def FirstSearch(request):
         book_list=book.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
-        'book_list': books.object_list,
+        'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
