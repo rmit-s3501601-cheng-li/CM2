@@ -260,9 +260,10 @@ def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
     fileID=infor['id']
-    if type==book:
+    if type=='pdf':
         file=book.objects.get(id=fileID)
         contents={
+            'id':file.id,
             'title': file.titles,
             'category':file.monograph_part,
             'studyReference':file.study_reference,
@@ -276,6 +277,7 @@ def GetFileDetail(request):
     else:
         file=others.objects.get(id=fileID)
         contents={
+            'id':file.id,
             'title':file.titles,
             'category':file.monograph_part,
             'fileType':file.file_type,
@@ -284,6 +286,34 @@ def GetFileDetail(request):
             }
         return Response(contents)
         
+        
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.IsAuthenticated,))
+def EditFile(request):
+    infor = json.loads(request.body)
+    type=infor['type']
+    fileID=infor['id']
+    newFile = request.FILES.get('myfile', None) 
+    if newFile is None:
+        pass
+        
+    if type =='pdf':
+        file=book.objects.get(id=fileID)
+    else:
+        file=others.objects.get(id=fileID)
+    path=file.path
+    fpath , fname = os.path.split(path)
+    if os.path.exists(path) is False:
+        return Response({'status':400})
+    else:
+        os.remove(path)
+        # need update database
+        destination = open(os.path.join(fpath, newFile.name), 'wb+')
+        for chunk in newFile.chunks():     
+            destination.write(chunk)   
+        # update database
+        destination.close()  
+        return Response({'status':200})
         
     
     
