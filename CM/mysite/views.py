@@ -268,7 +268,8 @@ def GetFileDetail(request):
             'monograph':file.file_ownership,
             'intervention':file.Intervention,
             'fileType':file.file_type,
-            'modification':file.modification_time
+            'modification':file.modification_time,
+            'path':file.path
             }
         return Response(contents)
     else:
@@ -279,7 +280,8 @@ def GetFileDetail(request):
             'category':file.monograph_part,
             'fileType':file.file_type,
             'monograph':file.file_ownership,
-            'modification':file.modification_time
+            'modification':file.modification_time,
+            'path':file.path
             }
         return Response(contents)
         
