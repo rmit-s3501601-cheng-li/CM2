@@ -161,36 +161,35 @@ def FirstSearch(request):
     if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
-        paginator = Paginator(book_list, 2)
-        books = paginator.page(page)
         content = {
-        'book_list': book_list,
+        'book_list': books.object_list,
         'other_list':other_list
         }
         return Response(content)
     elif type=='Type':
         book_list=book.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(file_type=keyword).values_list('id','titles','monograph_part','file_ownership')
-        paginator = Paginator(book_list, 3)
+        paginator = Paginator(book_list, 2)
         books = paginator.page(page)
         content = {
         'book_list': books.object_list,
         'other_list':other_list
         }
         return Response(content)
-    elif type=='study reference':
+    elif type=='Study reference':
         book_list=book.objects.filter(study_reference=keyword).values_list('id','titles','monograph_part','file_ownership')
         return Response(book_list)
-    elif type=='study id':
+    elif type=='Study id':
         book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         return Response(book_list)
-    elif type=='all':
-        pass
-        
-        
-        
-        
-        
+    elif type=='All':
+        book_list=book.objects.all().values_list('id','titles','monograph_part','file_ownership')
+        other_list=others.objects.all().values_list('id','titles','monograph_part','file_ownership')
+        content = {
+        'book_list': books.object_list,
+        'other_list':other_list
+        }
+        return Response(content)    
     else:
         return Response({'status':400})
     
