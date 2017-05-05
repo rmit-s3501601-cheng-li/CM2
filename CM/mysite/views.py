@@ -152,7 +152,7 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.IsAuthenticated,)) 
+@permission_classes((permissions.AllowAny,)) 
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
@@ -198,7 +198,7 @@ def FirstSearch(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.AllowAny,))
 def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -215,7 +215,7 @@ def ViewFile(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.AllowAny,))
 def download(request):
 
     infor = json.loads(request.body)
@@ -241,7 +241,7 @@ def download(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.AllowAny,))
 def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -252,7 +252,7 @@ def DeleteFile(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.AllowAny,))
 def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
@@ -312,11 +312,6 @@ def EditFile(request):
         # update database
         destination.close()  
         return Response({'status':200})
-    
-    
-    
-
-    
         
     
     
