@@ -137,6 +137,23 @@ def ChangePassword(request):
         return Response({'status':400})
     
     
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.IsAuthenticated,))  
+def ChangeEmail(request):
+    infor = json.loads(request.body)
+    email=infor['email']
+    userID=infor['userID'] 
+    try:
+        user=User.objects.get(id=userID)
+        user.email=email
+        user.save()
+        return Response({'status':200})
+    except:
+        return Response({'status':400}) 
+    
+      
+    
+    
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def ForgetPassword(request): 
@@ -152,7 +169,7 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.AllowAny,)) 
+@permission_classes((permissions.IsAuthenticated,)) 
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
@@ -194,32 +211,34 @@ def FirstSearch(request):
     else:
         return Response({'status':400})
 
+    
+    
+        
+        
+        
+        
 
-
-
-
-
-
-@api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
-def ViewFile(request):
+@api_view(http_method_names=['POST'])  
+@permission_classes((permissions.IsAuthenticated,))
+def ViewFile(request): 
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
-    return Response({'path':file.path})
+    return Response({'path':file.path})   
     # path = '/Users/kaidiyu/Desktop' + file.path
     # data = open("/Users/kaidiyu/Desktop/a1pg.pdf", "rb").read()
     # return HttpResponse(data)
 
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 def download(request):
+
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
@@ -243,7 +262,7 @@ def download(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAdminUser))
 def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -254,7 +273,7 @@ def DeleteFile(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated))
 def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
@@ -270,8 +289,7 @@ def GetFileDetail(request):
             'monograph':file.file_ownership,
             'intervention':file.Intervention,
             'fileType':file.file_type,
-            'modification':file.modification_time,
-            'path':file.path
+            'modification':file.modification_time
             }
         return Response(contents)
     else:
@@ -282,8 +300,7 @@ def GetFileDetail(request):
             'category':file.monograph_part,
             'fileType':file.file_type,
             'monograph':file.file_ownership,
-            'modification':file.modification_time,
-            'path':file.path
+            'modification':file.modification_time
             }
         return Response(contents)
         
@@ -295,8 +312,6 @@ def EditFile(request):
     type=infor['type']
     fileID=infor['id']
     newFile = request.FILES.get('myfile', None) 
-    if newFile is None:
-        pass    
     if type =='pdf':
         file=book.objects.get(id=fileID)
     else:
@@ -310,12 +325,10 @@ def EditFile(request):
         # need update database
         destination = open(os.path.join(fpath, newFile.name), 'wb+')
         for chunk in newFile.chunks():     
-            destination.write(chunk)   
+            destination.write(chunk)     
         # update database
         destination.close()  
         return Response({'status':200})
-        
     
     
-
 
