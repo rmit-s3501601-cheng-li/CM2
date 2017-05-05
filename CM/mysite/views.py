@@ -152,17 +152,17 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.AllowAny,)) 
+@permission_classes((permissions.IsAuthenticated,)) 
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    page=infor['page']
+    # page=infor['page']
     if type=='Title':
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
         content = {
-        'book_list': books.object_list,
+        'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
@@ -170,7 +170,7 @@ def FirstSearch(request):
         book_list=book.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
         content = {
-        'book_list': books.object_list,
+        'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
@@ -184,38 +184,38 @@ def FirstSearch(request):
         book_list=book.objects.all().values_list('id','titles','monograph_part','file_ownership')
         other_list=others.objects.all().values_list('id','titles','monograph_part','file_ownership')
         content = {
-        'book_list': books.object_list,
+        'book_list': book_list,
         'other_list':other_list
         }
-        return Response(content)    
+        return Response(content)
     else:
         return Response({'status':400})
-    
-    
-        
-        
-        
-        
 
-@api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))
-def ViewFile(request): 
+
+
+
+
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.IsAuthenticated,))
+def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
-    return Response({'path':file.path})   
+    return Response({'path':file.path})
     # path = '/Users/kaidiyu/Desktop' + file.path
     # data = open("/Users/kaidiyu/Desktop/a1pg.pdf", "rb").read()
     # return HttpResponse(data)
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 def download(request):
 
     infor = json.loads(request.body)
@@ -241,7 +241,7 @@ def download(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -252,7 +252,7 @@ def DeleteFile(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
@@ -268,7 +268,8 @@ def GetFileDetail(request):
             'monograph':file.file_ownership,
             'intervention':file.Intervention,
             'fileType':file.file_type,
-            'modification':file.modification_time
+            'modification':file.modification_time,
+            'path':file.path
             }
         return Response(contents)
     else:
@@ -279,7 +280,8 @@ def GetFileDetail(request):
             'category':file.monograph_part,
             'fileType':file.file_type,
             'monograph':file.file_ownership,
-            'modification':file.modification_time
+            'modification':file.modification_time,
+            'path':file.path
             }
         return Response(contents)
         
@@ -312,8 +314,9 @@ def EditFile(request):
         return Response({'status':200})
     
     
+    
 
-
+    
         
     
     
