@@ -157,32 +157,31 @@ def FirstSearch(request):
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
-    # page=infor['page']
     if type=='Title':
-        book_list=book.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
-        other_list=others.objects.filter(titles__contains=keyword).values_list('id','titles','monograph_part','file_ownership', 'path')
+        book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+        other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
     elif type=='Type':
-        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
-        other_list=others.objects.filter(file_type__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+        other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
     elif type=='Study reference':
-        book_list=book.objects.filter(study_reference=keyword).values_list('id','titles','monograph_part','file_ownership')
+        book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         return Response(book_list)
     elif type=='Study id':
-        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','titles','monograph_part','file_ownership')
+        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         return Response(book_list)
     elif type=='All':
-        book_list=book.objects.all().values_list('id','titles','monograph_part','file_ownership')
-        other_list=others.objects.all().values_list('id','titles','monograph_part','file_ownership')
+        book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+        other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -217,7 +216,6 @@ def ViewFile(request):
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def download(request):
-
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
