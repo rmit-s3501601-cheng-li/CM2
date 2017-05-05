@@ -180,8 +180,12 @@ def FirstSearch(request):
         book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         return Response(book_list)
     elif type=='All':
-        book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
-        other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+        if keyword =='':
+            book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+        else:
+            book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
