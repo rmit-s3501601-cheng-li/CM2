@@ -237,21 +237,21 @@ def AdvancedSearchAnd(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
     keyword=infor['keyword']
-    book_list=book.objects.filter().values_list('id','file_type','titles','monograph_part','file_ownership')
-    other_list=others.objects.filter().values_list('id','file_type','titles','monograph_part','file_ownership')
+    book_list=book.objects.filter()
+    other_list=others.objects.filter()
     for i in range(len(keyword)):
         if type[i]=='Title':
             book_list= book_list.filter(titles__contains=keyword[i])
             other_list=other_list.filter(titles__contains=keyword[i])
         elif type[i]=='File Type':
-            book_list= book_list.filter(titles__contains=keyword[i])
-            other_list=other_list.filter(titles__contains=keyword[i])
+            book_list= book_list.filter(file_type__contains=keyword[i])
+            other_list=other_list.filter(file_type__contains=keyword[i])
         
         elif type[i]=='Study reference':
-            book_list= book_list.filter(titles__contains=keyword[i])
+            book_list= book_list.filter(study_reference=keyword[i])
             
         elif type[i]=='Study id':
-            book_list= book_list.filter(titles__contains=keyword[i])
+            book_list= book_list.filter(study_ID__contains=keyword)
             
         elif type[i]=='All':
             if keyword =='':
