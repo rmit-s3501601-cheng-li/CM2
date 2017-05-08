@@ -15,6 +15,7 @@ from django.contrib import auth
 from django.http import HttpResponse, StreamingHttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from serializers import BookSerializer
+from itertools import chain
 
 
 
@@ -137,23 +138,6 @@ def ChangePassword(request):
         return Response({'status':400})
     
     
-@api_view(http_method_names=['GET'])  
-@permission_classes((permissions.IsAuthenticated,))  
-def ChangeEmail(request):
-    infor = json.loads(request.body)
-    email=infor['email']
-    userID=infor['userID'] 
-    try:
-        user=User.objects.get(id=userID)
-        user.email=email
-        user.save()
-        return Response({'status':200})
-    except:
-        return Response({'status':400}) 
-    
-      
-    
-    
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def ForgetPassword(request): 
@@ -169,7 +153,7 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.IsAuthenticated,)) 
+@permission_classes((permissions.AllowAny,)) 
 def FirstSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
@@ -201,8 +185,8 @@ def FirstSearch(request):
             book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
             other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
         else:
-            book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-            other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+            book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -211,34 +195,74 @@ def FirstSearch(request):
     else:
         return Response({'status':400})
 
-    
-    
-        
-        
-        
-        
 
-@api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAuthenticated,))
-def ViewFile(request): 
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def AdvancedSearch(request):
+    infor=json.loads(request.body)
+    type=infor['type']; #type list
+    keyword=infor['keyword']
+    book_list=book.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
+    other_list=others.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
+    for i in range(len(keyword)):
+        if type[i]=='Title':
+            book_list= book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+        elif type[i]=='Type':
+            book_list=book.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=others.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+        
+        elif type[i]=='Study reference':
+            book_list=book.objects.filter(study_reference=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            
+        elif type[i]=='Study id':
+            book_list=book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            
+        elif type[i]=='All':
+            if keyword =='':
+                book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+                other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+            else:
+                book_list=book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+                other_list=others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')  
+    content = {
+            'book_list': book_list,
+            'other_list':other_list
+            }
+    return Response(content)
+    
+    
+ #keyword list
+    
+    
+    
+    
+    
+    
+
+
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
-    return Response({'path':file.path})   
+    return Response({'path':file.path})
     # path = '/Users/kaidiyu/Desktop' + file.path
     # data = open("/Users/kaidiyu/Desktop/a1pg.pdf", "rb").read()
     # return HttpResponse(data)
 
-    
-    
-    
-    
-    
-    
-@api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated,))
-def download(request):
 
+
+
+
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def download(request):
     infor = json.loads(request.body)
     bookID=infor['id']
     file=book.objects.get(id=bookID)
@@ -262,7 +286,7 @@ def download(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAdminUser))
+@permission_classes((permissions.AllowAny,))
 def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -273,7 +297,7 @@ def DeleteFile(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated))
+@permission_classes((permissions.AllowAny,))
 def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
@@ -289,7 +313,8 @@ def GetFileDetail(request):
             'monograph':file.file_ownership,
             'intervention':file.Intervention,
             'fileType':file.file_type,
-            'modification':file.modification_time
+            'modification':file.modification_time,
+            'path':file.path
             }
         return Response(contents)
     else:
@@ -300,7 +325,8 @@ def GetFileDetail(request):
             'category':file.monograph_part,
             'fileType':file.file_type,
             'monograph':file.file_ownership,
-            'modification':file.modification_time
+            'modification':file.modification_time,
+            'path':file.path
             }
         return Response(contents)
         
@@ -312,6 +338,8 @@ def EditFile(request):
     type=infor['type']
     fileID=infor['id']
     newFile = request.FILES.get('myfile', None) 
+    if newFile is None:
+        pass    
     if type =='pdf':
         file=book.objects.get(id=fileID)
     else:
@@ -325,10 +353,12 @@ def EditFile(request):
         # need update database
         destination = open(os.path.join(fpath, newFile.name), 'wb+')
         for chunk in newFile.chunks():     
-            destination.write(chunk)     
+            destination.write(chunk)   
         # update database
         destination.close()  
         return Response({'status':200})
+        
     
     
+
 
