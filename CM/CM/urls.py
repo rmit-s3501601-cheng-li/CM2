@@ -1,4 +1,5 @@
 """CM URL Configuration
+
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.10/topics/http/urls/
 Examples:
@@ -32,7 +33,7 @@ urlpatterns = [
     url(r'downloadFile$', views.download),
     url(r'deleteFile$', views.DeleteFile),
     url(r'getFileDetail$', views.GetFileDetail),
-    url(r'changeEmail$', views.ChangeEmail),
+    url(r'advanceSearch$', views.AdvancedSearch),
     
 
 
