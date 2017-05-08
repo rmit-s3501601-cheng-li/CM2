@@ -33,7 +33,8 @@ urlpatterns = [
     url(r'downloadFile$', views.download),
     url(r'deleteFile$', views.DeleteFile),
     url(r'getFileDetail$', views.GetFileDetail),
-    url(r'advanceSearch$', views.AdvancedSearch),
+    url(r'advancedSearchOr$', views.AdvancedSearch),
+    url(r'advancedSearchAnd$', views.AdvancedSearchAnd),
     
 
 
