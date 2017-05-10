@@ -13,9 +13,7 @@ from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.http import HttpResponse, StreamingHttpResponse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from serializers import BookSerializer
-from itertools import chain
+
 
 
 
@@ -202,32 +200,32 @@ def AdvancedSearchOr(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
     keyword=infor['keyword']
-    book_list=book.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
-    other_list=others.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
+    book_list=book.objects.filter(titles="")
+    other_list=others.objects.filter(titles="")
     for i in range(len(keyword)):
         if type[i]=='Title':
-            book_list= book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
-            other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            book_list= book_list|book.objects.filter(titles__contains=keyword[i])
+            other_list=other_list|others.objects.filter(titles__contains=keyword[i])
         elif type[i]=='File Type':
-            book_list=book_list|book.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
-            other_list=other_list|others.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            book_list=book_list|book.objects.filter(file_type__contains=keyword[i])
+            other_list=other_list|others.objects.filter(file_type__contains=keyword[i])
         
         elif type[i]=='Study reference':
-            book_list=book_list|book.objects.filter(study_reference=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            book_list=book_list|book.objects.filter(study_reference=keyword[i])
             
         elif type[i]=='Study id':
-            book_list=book_list|book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            book_list=book_list|book.objects.filter(study_ID__contains=keyword[i])
             
         elif type[i]=='All':
             if keyword =='':
-                book_list=book_list|book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
-                other_list=other_list|others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+                book_list=book_list|book.objects.all()
+                other_list=other_list|others.objects.all()
             else:
-                book_list=book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
-                other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')  
+                book_list=book_list|book.objects.filter(titles__contains=keyword[i])
+                other_list=other_list|others.objects.filter(titles__contains=keyword[i]) 
     content = {
-            'book_list': book_list,
-            'other_list':other_list
+            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership'),
+            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership')
             }
     return Response(content)
     
@@ -266,14 +264,6 @@ def AdvancedSearchAnd(request):
             }
     return Response(content)
     
-    
-    
-    
-    
-    
-    
-
-
 
 
 @api_view(http_method_names=['POST'])
@@ -370,27 +360,30 @@ def EditFile(request):
     infor = json.loads(request.body)
     type=infor['type']
     fileID=infor['id']
-    newFile = request.FILES.get('myfile', None) 
+    newFile = request.FILES['file'] 
     if newFile is None:
-        pass    
-    if type =='pdf':
-        file=book.objects.get(id=fileID)
-    else:
-        file=others.objects.get(id=fileID)
-    path=file.path
-    fpath , fname = os.path.split(path)
-    if os.path.exists(path) is False:
-        return Response({'status':400})
-    else:
-        os.remove(path)
-        # need update database
-        destination = open(os.path.join(fpath, newFile.name), 'wb+')
-        for chunk in newFile.chunks():     
-            destination.write(chunk)   
-        # update database
-        destination.close()  
-        return Response({'status':200})
-        
+        return Response({'status':400}) 
+    else:   
+        if type =='pdf':
+            file=book.objects.get(id=fileID)
+        else:
+            file=others.objects.get(id=fileID)
+        path=file.path
+        fpath , fname = os.path.split(path)
+        if os.path.exists(path) is False:
+            return Response({'status':400})
+        else:
+            os.remove(path)
+            # need update database
+            destination = open(os.path.join(fpath, newFile.name), 'wb+')
+            for chunk in newFile.chunks():     
+                destination.write(chunk)   
+            file.titles=file.newFile.name
+            file.path=fpath+newFile.name
+            file.save()
+            destination.close()  
+            return Response({'status':200})
+    
     
     
 
