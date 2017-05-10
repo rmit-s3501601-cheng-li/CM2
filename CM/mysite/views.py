@@ -406,7 +406,18 @@ def EditFile(request):
             file.save()
             destination.close()  
             return Response({'status':200})
-    
+
+        
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.IsAdminUser,))  
+def GetRequestListCount(request):
+    try:
+        request_count = Registration_Request.objects.all().count()
+        return Response(request_count)
+    except:
+        return Response({'status':400})
+ 
+
     
 def SendMessage(service, user_id, message):
   """Send an email message.
