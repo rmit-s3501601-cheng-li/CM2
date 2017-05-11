@@ -80,6 +80,10 @@ def AcceptRequest(request):
         new_user=User.objects.get(username=new_user.username)
         new_user.userprofile.permission=registration.Permission
         new_user.userprofile.save()
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", registration.Username + " \nYou can login now"))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -92,6 +96,10 @@ def RejectRequest(request):
     requestID = infor['requestID']
     try: 
         registration = Registration_Request.objects.get(id=requestID)
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "Sorry", registration.Username + " \nYou are not allowed to login"))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -115,6 +123,10 @@ def AddAdminUser(request):
             new_user=User.objects.get(username=new_user.username)
             new_user.userprofile.permission=1     
             new_user.userprofile.save()
+            credentials = get_credentials()
+            http = credentials.authorize(httplib2.Http())
+            service = discovery.build('gmail', 'v1', http=http)
+            SendMessage(service, "me", CreateMessage("ykd522@gmail.com", email,  "Welcome " + username, "You can login now"))
             return Response({'ststus':200})
     except:
         return Response({'ststus':400})
@@ -167,6 +179,15 @@ def ForgetPassword(request):
     try:
         user=User.objects.get(username=username)
         email=user.email
+        random_string = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        password = ''.join(random.sample(random_string,8))
+        # password = '023459'
+        user.set_password(password)
+        user.save()
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", email, "Reset Password", username + '\n\nHere is your new password: ' + password))
         return Response({'status':200})
     except:
         return Response({'status':400})
@@ -336,8 +357,25 @@ def download(request):
 def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
-    file=book.objects.get(id=bookID)
-    file.delete()
+    type = infor['type']
+    # file=book.objects.get(id=bookID)
+    # file.delete()
+    # return Response({'status':200})
+    if type =='pdf':
+        file=book.objects.get(id=bookID)
+    else:
+        file=others.objects.get(id=bookID)
+    path=file.path
+    abso_path = '/Applications/XAMPP/htdocs' + path
+    
+    if os.path.exists(abso_path) is False:
+        return Response({'status':400})
+    else:
+        os.remove(abso_path)
+        # need update database
+        
+        file.delete()
+        return Response({'status':200}) 
     return Response({'status':200})
 
 
@@ -392,17 +430,20 @@ def EditFile(request):
         else:
             file=others.objects.get(id=fileID)
         path=file.path
+        abso_path = '/Applications/XAMPP/htdocs' + path
         fpath , fname = os.path.split(path)
-        if os.path.exists(path) is False:
+        if os.path.exists(abso_path) is False:
             return Response({'status':400})
         else:
-            os.remove(path)
+            os.remove(abso_path)
             # need update database
-            destination = open(os.path.join(fpath, newFile.name), 'wb+')
+            abso_path = '/Applications/XAMPP/htdocs' + fpath
+            destination = open(os.path.join(abso_path, newFile.name), 'wb+')
             for chunk in newFile.chunks():     
                 destination.write(chunk)   
-            file.titles=file.newFile.name
-            file.path=fpath+newFile.name
+            file.titles=newFile.name
+            fpath = os.path.join(fpath, '', newFile.name)
+            file.path=fpath
             file.save()
             destination.close()  
             return Response({'status':200})
