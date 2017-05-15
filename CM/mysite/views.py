@@ -378,7 +378,7 @@ def DeleteFile(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
