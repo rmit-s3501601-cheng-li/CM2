@@ -1,10 +1,8 @@
-from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from django.db.models.query import QuerySet
 from rest_framework.views import APIView
 from django.template.context_processors import request
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, permission_classes
 from django.core.files.storage import FileSystemStorage
 import os
@@ -21,11 +19,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import mimetypes
 import httplib2
-
 from apiclient import discovery
 import oauth2client
 from oauth2client import client
 from oauth2client import tools
+import time
 
 from apiclient import errors
 
@@ -195,8 +193,8 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.AllowAny,)) 
-def FirstSearch(request): 
+@permission_classes((permissions.IsAuthenticated)) 
+def SimpleSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
@@ -239,7 +237,7 @@ def FirstSearch(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated))
 def AdvancedSearchOr(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
@@ -311,7 +309,7 @@ def AdvancedSearchAnd(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated))
 def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -376,7 +374,6 @@ def DeleteFile(request):
         
         file.delete()
         return Response({'status':200}) 
-    return Response({'status':200})
 
 
 
@@ -444,6 +441,9 @@ def EditFile(request):
             file.titles=newFile.name
             fpath = os.path.join(fpath, '', newFile.name)
             file.path=fpath
+            ISOTIMEFORMAT='%Y-%m-%d %X'
+            now=time.strftime( ISOTIMEFORMAT, time.localtime() )
+            file.modification_time=now
             file.save()
             destination.close()  
             return Response({'status':200})
