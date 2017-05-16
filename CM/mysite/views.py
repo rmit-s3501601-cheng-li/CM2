@@ -13,8 +13,36 @@ from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.http import HttpResponse, StreamingHttpResponse
+<<<<<<< HEAD
+
+=======
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from serializers import BookSerializer
+from itertools import chain
+import base64
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import mimetypes
+import random
+>>>>>>> origin/master
+
+#from __future__ import print_function
+import httplib2
+
+from apiclient import discovery
+import oauth2client
+from oauth2client import client
+from oauth2client import tools
+
+from apiclient import errors
 
 
+SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
+CLIENT_SECRET_FILE = 'client_secret.json'
+APPLICATION_NAME = 'Gmail API Python Quickstart'
 
 
 
@@ -22,6 +50,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def Register(request): 
+
     registration=json.loads(request.body)
     username=registration['username']
     password=registration['password']
@@ -36,13 +65,17 @@ def Register(request):
                 new_request=Registration_Request(Username=username,Password=password,Email=email,
                                      Permission=permission,Comment=comment)
                 new_request.save()
-                return Response({'ststus':200})
+                credentials = get_credentials()
+                http = credentials.authorize(httplib2.Http())
+                service = discovery.build('gmail', 'v1', http=http)
+                SendMessage(service, "me", CreateMessage("ykd522@gmail.com", "ykd522@gmail.com", username + " want to join", username + ": " + comment))
+                return HttpResponse(status=200)
             else:
-                return Response({'ststus':400})
+                return HttpResponse(status=400)
         else:
-            return Response({'ststus':400})
+            return HttpResponse(status=400)
     except:
-        return Response({'ststus':400})
+        return HttpResponse(status=400)
 
 
 @api_view(http_method_names=['POST'])  
@@ -57,6 +90,11 @@ def AcceptRequest(request):
         new_user=User.objects.get(username=new_user.username)
         new_user.userprofile.permission=registration.Permission
         new_user.userprofile.save()
+        
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", "Welcome" + registration.Username + " \n\nYou can login now."))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -67,8 +105,13 @@ def AcceptRequest(request):
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']
+    
     try: 
         registration = Registration_Request.objects.get(id=requestID)
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "Sorry", registration.Username + " \n\nYou are not allowed to login"))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -92,6 +135,10 @@ def AddAdminUser(request):
             new_user=User.objects.get(username=new_user.username)
             new_user.userprofile.permission=1     
             new_user.userprofile.save()
+            credentials = get_credentials()
+            http = credentials.authorize(httplib2.Http())
+            service = discovery.build('gmail', 'v1', http=http)
+            SendMessage(service, "me", CreateMessage("ykd522@gmail.com", email,  "Welcome " + username, "You can login now"))
             return Response({'ststus':200})
     except:
         return Response({'ststus':400})
@@ -121,7 +168,7 @@ def GetRequestList(request):
     
 
 
-@api_view(http_method_names=['GET'])  
+@api_view(http_method_names=['POST'])  
 @permission_classes((permissions.IsAuthenticated,))  
 def ChangePassword(request):
     infor = json.loads(request.body)
@@ -144,6 +191,15 @@ def ForgetPassword(request):
     try:
         user=User.objects.get(username=username)
         email=user.email
+        random_string = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        password = ''.join(random.sample(random_string,8))
+        # password = '023459'
+        user.set_password(password)
+        user.save()
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", email, "Reset Password", username + '\n\nHere is your new password: ' + password))
         return Response({'status':200})
     except:
         return Response({'status':400})
@@ -151,27 +207,39 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.AllowAny,)) 
-def FirstSearch(request): 
+@permission_classes((permissions.IsAuthenticated,)) 
+def SimpleSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
     keyword=infor['keyword']
     if type=='Title':
+<<<<<<< HEAD
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+=======
+        book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+>>>>>>> origin/master
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
+<<<<<<< HEAD
     elif type=='Type':
         book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+=======
+    elif type=='File Type':
+        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+>>>>>>> origin/master
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
+<<<<<<< HEAD
     elif type=='Study reference':
         book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         return Response(book_list)
@@ -185,6 +253,24 @@ def FirstSearch(request):
         else:
             book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
             other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
+=======
+    elif type=='Study Ref':
+        book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        return Response(book_list)
+    elif type=='Study ID':
+        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        return Response(book_list)
+    elif type=='Intervention':
+        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        return Response(book_list)
+    elif type=='All':
+        if keyword =='':
+            book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        else:
+            book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+>>>>>>> origin/master
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -195,11 +281,16 @@ def FirstSearch(request):
 
 
 @api_view(http_method_names=['POST'])
+<<<<<<< HEAD
 @permission_classes((permissions.AllowAny,))
+=======
+@permission_classes((permissions.IsAuthenticated,))
+>>>>>>> origin/master
 def AdvancedSearchOr(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
     keyword=infor['keyword']
+<<<<<<< HEAD
     book_list=book.objects.filter(titles="")
     other_list=others.objects.filter(titles="")
     for i in range(len(keyword)):
@@ -231,6 +322,45 @@ def AdvancedSearchOr(request):
     
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
+=======
+    book_list=book.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+    other_list=others.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+    for i in range(len(keyword)):
+        if type[i]=='Title':
+            book_list= book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        elif type[i]=='File Type':
+            book_list=book.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            other_list=others.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        
+        elif type[i]=='Study reference':
+            book_list=book.objects.filter(study_reference=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            
+        elif type[i]=='Study id':
+            book_list=book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        
+        elif type[i]=='Intervention':
+            book_list=book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+
+        elif type[i]=='All':
+            if keyword =='':
+                book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+                other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            else:
+                book_list=book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+                other_list=others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')  
+    content = {
+            'book_list': book_list,
+            'other_list':other_list
+            }
+    return Response(content)
+    
+    
+ #keyword list
+    
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.IsAuthenticated,))
+>>>>>>> origin/master
 def AdvancedSearchAnd(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
@@ -250,6 +380,7 @@ def AdvancedSearchAnd(request):
             
         elif type[i]=='Study id':
             book_list= book_list.filter(study_ID__contains=keyword)
+<<<<<<< HEAD
             
         elif type[i]=='All':
             if keyword =='':
@@ -268,6 +399,32 @@ def AdvancedSearchAnd(request):
 
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
+=======
+
+        elif type[i]=='Intervention':
+            book_list= book_list.filter(study_ID__contains=keyword)
+            
+        elif type[i]=='All':
+            if keyword =='':
+                book_list= book_list.filter(titles__contains=keyword[i])
+                other_list=other_list.filter(titles__contains=keyword[i])
+            else:
+                book_list= book_list.filter(titles__contains=keyword[i])
+                other_list=other_list.filter(titles__contains=keyword[i])  
+    content = {
+            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time'),
+            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            }
+    return Response(content)
+    
+    
+    
+    
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.IsAuthenticated,))
+>>>>>>> origin/master
 def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -313,10 +470,25 @@ def download(request):
 def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
-    file=book.objects.get(id=bookID)
-    file.delete()
-    return Response({'status':200})
-
+    type = infor['type']
+    # file=book.objects.get(id=bookID)
+    # file.delete()
+    # return Response({'status':200})
+    if type =='pdf':
+        file=book.objects.get(id=bookID)
+    else:
+        file=others.objects.get(id=bookID)
+    path=file.path
+    abso_path = '/Applications/XAMPP/htdocs' + path
+    
+    if os.path.exists(abso_path) is False:
+        return Response({'status':400})
+    else:
+        os.remove(abso_path)
+        # need update database
+        
+        file.delete()
+        return Response({'status':200})
 
 
 @api_view(http_method_names=['POST'])
@@ -357,6 +529,7 @@ def GetFileDetail(request):
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
 def EditFile(request):
+<<<<<<< HEAD
     newFile = request.FILES.get('file')
     id=request.POST.get('id')
     return Response(newFile.name)
@@ -383,7 +556,122 @@ def EditFile(request):
             destination.close()  
             return Response({'status':200})
     
+=======
+    
+    newFile = request.FILES['file'] 
+    type = request.POST.get('type')
+    id = request.POST.get('id')
+
+
+    if newFile is None:
+        return Response({'status':500}) 
+    else:   
+        if type =='pdf':
+            file=book.objects.get(id=id)
+        else:
+            file=others.objects.get(id=id)
+        path=file.path
+        abso_path = '/Applications/XAMPP/htdocs' + path
+        fpath , fname = os.path.split(path)
+        if os.path.exists(abso_path) is False:
+            return Response({'status':400})
+        else:
+            os.remove(abso_path)
+            # need update database
+            abso_path = '/Applications/XAMPP/htdocs' + fpath
+            destination = open(os.path.join(abso_path, newFile.name), 'wb+')
+            for chunk in newFile.chunks():     
+                destination.write(chunk)   
+            file.titles=newFile.name
+            fpath = os.path.join(fpath, '', newFile.name)
+            file.path=fpath
+            file.save()
+            destination.close()  
+            return Response({'status':200})
+        
+>>>>>>> origin/master
     
     
 
 
+
+@api_view(http_method_names=['GET'])  
+@permission_classes((permissions.IsAdminUser,))  
+def GetRequestListCount(request):
+    try:
+        request_count = Registration_Request.objects.all().count()
+        return Response(request_count)
+    except:
+        return Response({'status':400})
+
+
+
+
+
+def SendMessage(service, user_id, message):
+  """Send an email message.
+
+  Args:
+    service: Authorized Gmail API service instance.
+    user_id: User's email address. The special value "me"
+    can be used to indicate the authenticated user.
+    message: Message to be sent.
+
+  Returns:
+    Sent Message.
+  """
+  try:
+    message = (service.users().messages().send(userId=user_id, body=message)
+               .execute())
+    print 'Message Id: %s' % message['id']
+    return message
+  except errors.HttpError, error:
+    print 'An error occurred: %s' % error
+
+
+def CreateMessage(sender, to, subject, message_text):
+  """Create a message for an email.
+
+  Args:
+    sender: Email address of the sender.
+    to: Email address of the receiver.
+    subject: The subject of the email message.
+    message_text: The text of the email message.
+
+  Returns:
+    An object containing a base64url encoded email object.
+  """
+  message = MIMEText(message_text)
+  message['to'] = to
+  message['from'] = sender
+  message['subject'] = subject
+  return {'raw': base64.urlsafe_b64encode(message.as_string())}
+
+
+def get_credentials():
+    """Gets valid user credentials from storage.
+
+    If nothing has been stored, or if the stored credentials are invalid,
+    the OAuth2 flow is completed to obtain the new credentials.
+
+    Returns:
+        Credentials, the obtained credential.
+    """
+    home_dir = os.path.expanduser('~')
+    credential_dir = os.path.join(home_dir, '.credentials')
+    if not os.path.exists(credential_dir):
+        os.makedirs(credential_dir)
+    credential_path = os.path.join(credential_dir,
+                                   'sendEmail.json')
+
+    store = oauth2client.file.Storage(credential_path)
+    credentials = store.get()
+    if not credentials or credentials.invalid:
+        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+        flow.user_agent = APPLICATION_NAME
+        if flags:
+            credentials = tools.run_flow(flow, store, flags)
+        else: # Needed only for compatibility with Python 2.6
+            credentials = tools.run(flow, store)
+        print('Storing credentials to ' + credential_path)
+    return credentials

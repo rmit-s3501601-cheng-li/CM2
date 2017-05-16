@@ -29,11 +29,22 @@ urlpatterns = [
     url(r'changePassword$', views.ChangePassword),
     url(r'forgetPassword$', views.ForgetPassword),
     url(r'viewFile$', views.ViewFile),
-    url(r'search$', views.FirstSearch),
+    url(r'search$', views.SimpleSearch),
     url(r'downloadFile$', views.download),
     url(r'deleteFile$', views.DeleteFile),
     url(r'getFileDetail$', views.GetFileDetail),
     url(r'advancedSearchOr$', views.AdvancedSearchOr),
+<<<<<<< HEAD
     url(r'advancedSearchAnd$', views.AdvancedSearchAnd),  
     url(r'editFile$', views.EditFile),     
+=======
+    url(r'advancedSearchAnd$', views.AdvancedSearchAnd),
+    url(r'editFile$', views.EditFile),
+    url(r'getUsersCount$', views.GetRequestListCount),
+
+
+
+
+    
+>>>>>>> origin/master
 ]
