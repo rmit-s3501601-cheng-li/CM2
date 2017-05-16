@@ -33,10 +33,10 @@ urlpatterns = [
     url(r'downloadFile$', views.download),
     url(r'deleteFile$', views.DeleteFile),
     url(r'getFileDetail$', views.GetFileDetail),
-    url(r'advancedSearchOr$', views.AdvancedSearch),
+    url(r'advancedSearchOr$', views.AdvancedSearchOr),
     url(r'advancedSearchAnd$', views.AdvancedSearchAnd),
     url(r'editFile$', views.EditFile),
-    url(r'getUsersCount$', views.GetRequestListCount)
+    url(r'getUsersCount$', views.GetRequestListCount),
 
 
 

@@ -1,8 +1,10 @@
+from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from django.db.models.query import QuerySet
 from rest_framework.views import APIView
 from django.template.context_processors import request
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, permission_classes
 from django.core.files.storage import FileSystemStorage
 import os
@@ -11,6 +13,9 @@ from models import Registration_Request,UserProfile,book,others
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.http import HttpResponse, StreamingHttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from serializers import BookSerializer
+from itertools import chain
 import base64
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
@@ -18,12 +23,15 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import mimetypes
+import random
+
+#from __future__ import print_function
 import httplib2
+
 from apiclient import discovery
 import oauth2client
 from oauth2client import client
 from oauth2client import tools
-import time
 
 from apiclient import errors
 
@@ -35,10 +43,10 @@ APPLICATION_NAME = 'Gmail API Python Quickstart'
 
 
 
-
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny,))
 def Register(request): 
+
     registration=json.loads(request.body)
     username=registration['username']
     password=registration['password']
@@ -57,13 +65,13 @@ def Register(request):
                 http = credentials.authorize(httplib2.Http())
                 service = discovery.build('gmail', 'v1', http=http)
                 SendMessage(service, "me", CreateMessage("ykd522@gmail.com", "ykd522@gmail.com", username + " want to join", username + ": " + comment))
-                return Response({'ststus':200})
+                return HttpResponse(status=200)
             else:
-                return Response({'ststus':400})
+                return HttpResponse(status=400)
         else:
-            return Response({'ststus':400})
+            return HttpResponse(status=400)
     except:
-        return Response({'ststus':400})
+        return HttpResponse(status=400)
 
 
 @api_view(http_method_names=['POST'])  
@@ -78,10 +86,11 @@ def AcceptRequest(request):
         new_user=User.objects.get(username=new_user.username)
         new_user.userprofile.permission=registration.Permission
         new_user.userprofile.save()
+        
         credentials = get_credentials()
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('gmail', 'v1', http=http)
-        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", registration.Username + " \nYou can login now"))
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", "Welcome" + registration.Username + " \n\nYou can login now."))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -92,12 +101,13 @@ def AcceptRequest(request):
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']
+    
     try: 
         registration = Registration_Request.objects.get(id=requestID)
         credentials = get_credentials()
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('gmail', 'v1', http=http)
-        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "Sorry", registration.Username + " \nYou are not allowed to login"))
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "Sorry", registration.Username + " \n\nYou are not allowed to login"))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -154,7 +164,7 @@ def GetRequestList(request):
     
 
 
-@api_view(http_method_names=['GET'])  
+@api_view(http_method_names=['POST'])  
 @permission_classes((permissions.IsAuthenticated,))  
 def ChangePassword(request):
     infor = json.loads(request.body)
@@ -193,7 +203,7 @@ def ForgetPassword(request):
 
 
 @api_view(http_method_names=['POST'])   
-@permission_classes((permissions.IsAuthenticated)) 
+@permission_classes((permissions.AllowAny,)) 
 def SimpleSearch(request): 
     infor = json.loads(request.body)
     type=infor['type']
@@ -206,7 +216,7 @@ def SimpleSearch(request):
         'other_list':other_list
         }
         return Response(content)
-    elif type=='Type':
+    elif type=='File Type':
         book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         content = {
@@ -214,10 +224,10 @@ def SimpleSearch(request):
         'other_list':other_list
         }
         return Response(content)
-    elif type=='Study reference':
+    elif type=='Study Ref':
         book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         return Response(book_list)
-    elif type=='Study id':
+    elif type=='Study ID':
         book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
         return Response(book_list)
     elif type=='All':
@@ -237,79 +247,54 @@ def SimpleSearch(request):
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated))
+@permission_classes((permissions.AllowAny,))
 def AdvancedSearchOr(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
     keyword=infor['keyword']
-    book_list=book.objects.filter(titles="")
-    other_list=others.objects.filter(titles="")
+    book_list=book.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
+    other_list=others.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
     for i in range(len(keyword)):
         if type[i]=='Title':
-            book_list= book_list|book.objects.filter(titles__contains=keyword[i])
-            other_list=other_list|others.objects.filter(titles__contains=keyword[i])
+            book_list= book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
         elif type[i]=='File Type':
-            book_list=book_list|book.objects.filter(file_type__contains=keyword[i])
-            other_list=other_list|others.objects.filter(file_type__contains=keyword[i])
+            book_list=book.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=others.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
         
         elif type[i]=='Study reference':
-            book_list=book_list|book.objects.filter(study_reference=keyword[i])
+            book_list=book.objects.filter(study_reference=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
             
         elif type[i]=='Study id':
-            book_list=book_list|book.objects.filter(study_ID__contains=keyword[i])
+            book_list=book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
             
         elif type[i]=='All':
             if keyword =='':
-                book_list=book_list|book.objects.all()
-                other_list=other_list|others.objects.all()
+                book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+                other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
             else:
-                book_list=book_list|book.objects.filter(titles__contains=keyword[i])
-                other_list=other_list|others.objects.filter(titles__contains=keyword[i]) 
+                book_list=book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+                other_list=others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')  
     content = {
-            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership'),
-            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership')
+            'book_list': book_list,
+            'other_list':other_list
             }
     return Response(content)
     
+    
+ #keyword list
+    
+    
+    
+    
+    
+    
+
+
+
+
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.AllowAny,))
-def AdvancedSearchAnd(request):
-    infor=json.loads(request.body)
-    type=infor['type']; #type list
-    keyword=infor['keyword']
-    book_list=book.objects.filter()
-    other_list=others.objects.filter()
-    for i in range(len(keyword)):
-        if type[i]=='Title':
-            book_list= book_list.filter(titles__contains=keyword[i])
-            other_list=other_list.filter(titles__contains=keyword[i])
-        elif type[i]=='File Type':
-            book_list= book_list.filter(file_type__contains=keyword[i])
-            other_list=other_list.filter(file_type__contains=keyword[i])
-        
-        elif type[i]=='Study reference':
-            book_list= book_list.filter(study_reference=keyword[i])
-            
-        elif type[i]=='Study id':
-            book_list= book_list.filter(study_ID__contains=keyword)
-            
-        elif type[i]=='All':
-            if keyword =='':
-                book_list= book_list.filter(titles__contains=keyword[i])
-                other_list=other_list.filter(titles__contains=keyword[i])
-            else:
-                book_list= book_list.filter(titles__contains=keyword[i])
-                other_list=other_list.filter(titles__contains=keyword[i])  
-    content = {
-            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership'),
-            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership')
-            }
-    return Response(content)
-    
-
-
-@api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated))
 def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -373,12 +358,11 @@ def DeleteFile(request):
         # need update database
         
         file.delete()
-        return Response({'status':200}) 
-
+        return Response({'status':200})
 
 
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.AllowAny,))
 def GetFileDetail(request):
     infor = json.loads(request.body)
     type=infor['type']
@@ -415,17 +399,19 @@ def GetFileDetail(request):
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.IsAuthenticated,))
 def EditFile(request):
-    infor = json.loads(request.body)
-    type=infor['type']
-    fileID=infor['id']
+    
     newFile = request.FILES['file'] 
+    type = request.POST.get('type')
+    id = request.POST.get('id')
+
+
     if newFile is None:
-        return Response({'status':400}) 
+        return Response({'status':500}) 
     else:   
         if type =='pdf':
-            file=book.objects.get(id=fileID)
+            file=book.objects.get(id=id)
         else:
-            file=others.objects.get(id=fileID)
+            file=others.objects.get(id=id)
         path=file.path
         abso_path = '/Applications/XAMPP/htdocs' + path
         fpath , fname = os.path.split(path)
@@ -441,14 +427,82 @@ def EditFile(request):
             file.titles=newFile.name
             fpath = os.path.join(fpath, '', newFile.name)
             file.path=fpath
-            ISOTIMEFORMAT='%Y-%m-%d %X'
-            now=time.strftime( ISOTIMEFORMAT, time.localtime() )
-            file.modification_time=now
             file.save()
             destination.close()  
             return Response({'status':200})
-
         
+    
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def AdvancedSearch(request):
+    infor=json.loads(request.body)
+    type=infor['type']; #type list
+    keyword=infor['keyword']
+    book_list=book.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
+    other_list=others.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership')
+    for i in range(len(keyword)):
+        if type[i]=='Title':
+            book_list= book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+        elif type[i]=='File Type':
+            book_list=book_list|book.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            other_list=other_list|others.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+        
+        elif type[i]=='Study reference':
+            book_list=book_list|book.objects.filter(study_reference=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            
+        elif type[i]=='Study id':
+            book_list=book_list|book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+            
+        elif type[i]=='All':
+            if keyword =='':
+                book_list=book_list|book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+                other_list=other_list|thers.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
+            else:
+                book_list=book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')
+                other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership')  
+    content = {
+            'book_list': book_list,
+            'other_list':other_list
+            }
+    return Response(content)
+    
+@api_view(http_method_names=['POST'])
+@permission_classes((permissions.AllowAny,))
+def AdvancedSearchAnd(request):
+    infor=json.loads(request.body)
+    type=infor['type']; #type list
+    keyword=infor['keyword']
+    book_list=book.objects.filter()
+    other_list=others.objects.filter()
+    for i in range(len(keyword)):
+        if type[i]=='Title':
+            book_list= book_list.filter(titles__contains=keyword[i])
+            other_list=other_list.filter(titles__contains=keyword[i])
+        elif type[i]=='File Type':
+            book_list= book_list.filter(file_type__contains=keyword[i])
+            other_list=other_list.filter(file_type__contains=keyword[i])
+        
+        elif type[i]=='Study reference':
+            book_list= book_list.filter(study_reference=keyword[i])
+            
+        elif type[i]=='Study id':
+            book_list= book_list.filter(study_ID__contains=keyword)
+            
+        elif type[i]=='All':
+            if keyword =='':
+                book_list= book_list.filter(titles__contains=keyword[i])
+                other_list=other_list.filter(titles__contains=keyword[i])
+            else:
+                book_list= book_list.filter(titles__contains=keyword[i])
+                other_list=other_list.filter(titles__contains=keyword[i])  
+    content = {
+            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership'),
+            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership')
+            }
+    return Response(content)
+
+
 @api_view(http_method_names=['GET'])  
 @permission_classes((permissions.IsAdminUser,))  
 def GetRequestListCount(request):
@@ -457,9 +511,11 @@ def GetRequestListCount(request):
         return Response(request_count)
     except:
         return Response({'status':400})
- 
 
-    
+
+
+
+
 def SendMessage(service, user_id, message):
   """Send an email message.
 
@@ -500,7 +556,6 @@ def CreateMessage(sender, to, subject, message_text):
   return {'raw': base64.urlsafe_b64encode(message.as_string())}
 
 
-
 def get_credentials():
     """Gets valid user credentials from storage.
 
@@ -528,4 +583,3 @@ def get_credentials():
             credentials = tools.run(flow, store)
         print('Storing credentials to ' + credential_path)
     return credentials
-
