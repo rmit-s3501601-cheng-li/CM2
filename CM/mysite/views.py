@@ -9,13 +9,10 @@ from rest_framework.decorators import api_view, permission_classes
 from django.core.files.storage import FileSystemStorage
 import os
 import json
-from models import Registration_Request,UserProfile,book,others
+from models import Registration_Request,UserProfile,book,others,log
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.http import HttpResponse, StreamingHttpResponse
-<<<<<<< HEAD
-
-=======
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from serializers import BookSerializer
 from itertools import chain
@@ -27,8 +24,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import mimetypes
 import random
->>>>>>> origin/master
-
+import time
 #from __future__ import print_function
 import httplib2
 
@@ -213,47 +209,21 @@ def SimpleSearch(request):
     type=infor['type']
     keyword=infor['keyword']
     if type=='Title':
-<<<<<<< HEAD
-        book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-        other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-=======
         book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
->>>>>>> origin/master
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
-<<<<<<< HEAD
-    elif type=='Type':
-        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-        other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-=======
     elif type=='File Type':
         book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
->>>>>>> origin/master
         content = {
         'book_list': book_list,
         'other_list':other_list
         }
         return Response(content)
-<<<<<<< HEAD
-    elif type=='Study reference':
-        book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-        return Response(book_list)
-    elif type=='Study id':
-        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-        return Response(book_list)
-    elif type=='All':
-        if keyword =='':
-            book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
-            other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership')
-        else:
-            book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-            other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership')
-=======
     elif type=='Study Ref':
         book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         return Response(book_list)
@@ -261,8 +231,24 @@ def SimpleSearch(request):
         book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         return Response(book_list)
     elif type=='Intervention':
-        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(Intervention=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         return Response(book_list)
+    elif type=='Category':
+        book_list=book.objects.filter(file_ownership__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        other_list=others.objects.filter(file_ownership__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        content = {
+        'book_list': book_list,
+        'other_list':other_list
+        }
+        return Response(content)
+    elif type=='Monograph':
+        book_list=book.objects.filter(monograph_part=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        other_list=others.objects.filter(monograph_part=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        content = {
+        'book_list': book_list,
+        'other_list':other_list
+        }
+        return Response(content)
     elif type=='All':
         if keyword =='':
             book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
@@ -270,7 +256,6 @@ def SimpleSearch(request):
         else:
             book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
             other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
->>>>>>> origin/master
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -281,16 +266,11 @@ def SimpleSearch(request):
 
 
 @api_view(http_method_names=['POST'])
-<<<<<<< HEAD
 @permission_classes((permissions.AllowAny,))
-=======
-@permission_classes((permissions.IsAuthenticated,))
->>>>>>> origin/master
 def AdvancedSearchOr(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
     keyword=infor['keyword']
-<<<<<<< HEAD
     book_list=book.objects.filter(titles="")
     other_list=others.objects.filter(titles="")
     for i in range(len(keyword)):
@@ -298,60 +278,33 @@ def AdvancedSearchOr(request):
             book_list= book_list|book.objects.filter(titles__contains=keyword[i])
             other_list=other_list|others.objects.filter(titles__contains=keyword[i])
         elif type[i]=='File Type':
-            book_list=book_list|book.objects.filter(file_type__contains=keyword[i])
-            other_list=other_list|others.objects.filter(file_type__contains=keyword[i])
+            book_list=book.objects.filter(file_type__contains=keyword[i])
+            other_list=others.objects.filter(file_type__contains=keyword[i])
         
         elif type[i]=='Study reference':
-            book_list=book_list|book.objects.filter(study_reference=keyword[i])
+            book_list=book.objects.filter(study_reference=keyword[i])
             
         elif type[i]=='Study id':
-            book_list=book_list|book.objects.filter(study_ID__contains=keyword[i])
-            
-        elif type[i]=='All':
-            if keyword =='':
-                book_list=book_list|book.objects.all()
-                other_list=other_list|others.objects.all()
-            else:
-                book_list=book_list|book.objects.filter(titles__contains=keyword[i])
-                other_list=other_list|others.objects.filter(titles__contains=keyword[i]) 
-    content = {
-            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership'),
-            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership')
-            }
-    return Response(content)
-    
-@api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
-=======
-    book_list=book.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-    other_list=others.objects.filter(titles="").values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-    for i in range(len(keyword)):
-        if type[i]=='Title':
-            book_list= book_list|book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-            other_list=other_list|others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-        elif type[i]=='File Type':
-            book_list=book.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-            other_list=others.objects.filter(file_type__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-        
-        elif type[i]=='Study reference':
-            book_list=book.objects.filter(study_reference=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-            
-        elif type[i]=='Study id':
-            book_list=book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            book_list=book.objects.filter(study_ID__contains=keyword[i])
         
         elif type[i]=='Intervention':
-            book_list=book.objects.filter(study_ID__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-
+            book_list=book.objects.filter(Intervention=keyword[i])
+        elif type[i]=='Category':
+            book_list=book.objects.filter(file_ownership__contains=keyword[i])
+            other_list=others.objects.filter(file_ownership__contains=keyword[i])
+        elif type[i]=='Monograph':
+            book_list=book.objects.filter(monograph_part=keyword[i])
+            other_list=others.objects.filter(monograph_part=keyword[i])
         elif type[i]=='All':
             if keyword =='':
-                book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-                other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+                book_list=book.objects.all()
+                other_list=others.objects.all()
             else:
-                book_list=book.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-                other_list=others.objects.filter(titles__contains=keyword[i]).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')  
+                book_list=book.objects.filter(titles__contains=keyword[i])
+                other_list=others.objects.filter(titles__contains=keyword[i])
     content = {
-            'book_list': book_list,
-            'other_list':other_list
+            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time'),
+            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
             }
     return Response(content)
     
@@ -360,7 +313,6 @@ def AdvancedSearchOr(request):
     
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.IsAuthenticated,))
->>>>>>> origin/master
 def AdvancedSearchAnd(request):
     infor=json.loads(request.body)
     type=infor['type']; #type list
@@ -379,35 +331,20 @@ def AdvancedSearchAnd(request):
             book_list= book_list.filter(study_reference=keyword[i])
             
         elif type[i]=='Study id':
-            book_list= book_list.filter(study_ID__contains=keyword)
-<<<<<<< HEAD
-            
-        elif type[i]=='All':
-            if keyword =='':
-                book_list= book_list.filter(titles__contains=keyword[i])
-                other_list=other_list.filter(titles__contains=keyword[i])
-            else:
-                book_list= book_list.filter(titles__contains=keyword[i])
-                other_list=other_list.filter(titles__contains=keyword[i])  
-    content = {
-            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership'),
-            'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership')
-            }
-    return Response(content)
-    
-
-
-@api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
-=======
+            book_list= book_list.filter(study_ID__contains=keyword[i])
 
         elif type[i]=='Intervention':
-            book_list= book_list.filter(study_ID__contains=keyword)
-            
+            book_list= book_list.filter(Intervention=keyword)
+        elif type[i]=='Category':
+            book_list=book.objects.filter(file_ownership__contains=keyword[i])
+            other_list=others.objects.filter(file_ownership__contains=keyword[i])
+        elif type[i]=='Monograph':
+            book_list=book.objects.filter(monograph_part=keyword[i])
+            other_list=others.objects.filter(monograph_part=keyword[i])
         elif type[i]=='All':
             if keyword =='':
-                book_list= book_list.filter(titles__contains=keyword[i])
-                other_list=other_list.filter(titles__contains=keyword[i])
+                book_list=book.objects.all()
+                other_list=others.objects.all()
             else:
                 book_list= book_list.filter(titles__contains=keyword[i])
                 other_list=other_list.filter(titles__contains=keyword[i])  
@@ -424,7 +361,6 @@ def AdvancedSearchAnd(request):
 
 @api_view(http_method_names=['POST'])
 @permission_classes((permissions.IsAuthenticated,))
->>>>>>> origin/master
 def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
@@ -471,23 +407,28 @@ def DeleteFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
     type = infor['type']
-    # file=book.objects.get(id=bookID)
-    # file.delete()
-    # return Response({'status':200})
+    userID=infor['userID']
+    user=User.objects.get(id=userID)
+    current=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if type =='pdf':
         file=book.objects.get(id=bookID)
     else:
         file=others.objects.get(id=bookID)
+    newLog=log(logType='delete',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
     path=file.path
     abso_path = '/Applications/XAMPP/htdocs' + path
     
     if os.path.exists(abso_path) is False:
         return Response({'status':400})
     else:
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "File Delete Notification", file.titles + " \n\nDeleted.Check details in the log page"))
         os.remove(abso_path)
-        # need update database
-        
+        # need update database        
         file.delete()
+        newLog.save()
         return Response({'status':200})
 
 
@@ -527,42 +468,14 @@ def GetFileDetail(request):
         
         
 @api_view(http_method_names=['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 def EditFile(request):
-<<<<<<< HEAD
-    newFile = request.FILES.get('file')
-    id=request.POST.get('id')
-    return Response(newFile.name)
-    if newFile is None:
-        return Response(newFile.name) 
-    else:   
-        if type =='pdf':
-            file=book.objects.get(id=fileID)
-        else:
-            file=others.objects.get(id=fileID)
-        path=file.path
-        fpath , fname = os.path.split(path)
-        if os.path.exists(path) is False:
-            return Response({'status':400})
-        else:
-            os.remove(path)
-            # need update database
-            destination = open(os.path.join(fpath, newFile.name), 'wb+')
-            for chunk in newFile.chunks():     
-                destination.write(chunk)   
-            file.titles=file.newFile.name
-            file.path=fpath+newFile.name
-            file.save()
-            destination.close()  
-            return Response({'status':200})
-    
-=======
     
     newFile = request.FILES['file'] 
     type = request.POST.get('type')
     id = request.POST.get('id')
-
-
+    userID=request.POST.get('userID')
+    current=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if newFile is None:
         return Response({'status':500}) 
     else:   
@@ -570,6 +483,8 @@ def EditFile(request):
             file=book.objects.get(id=id)
         else:
             file=others.objects.get(id=id)
+        user=User.objects.get(id=userID)
+        newLog=log(logType='edit',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
         path=file.path
         abso_path = '/Applications/XAMPP/htdocs' + path
         fpath , fname = os.path.split(path)
@@ -584,12 +499,13 @@ def EditFile(request):
                 destination.write(chunk)   
             file.titles=newFile.name
             fpath = os.path.join(fpath, '', newFile.name)
-            file.path=fpath
+            file.path=fpath    
+            file.modification_time=current
             file.save()
+            newLog.save()
             destination.close()  
             return Response({'status':200})
         
->>>>>>> origin/master
     
     
 

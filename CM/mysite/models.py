@@ -48,6 +48,15 @@ class book(models.Model):
     modification_time=models.CharField(max_length=100)
     #reference=models.CharField(max_length=100)
     
-
+class log(models.Model):
+    logType=models.CharField(max_length=10)
+    titles = models.CharField(max_length=100,null=False)
+    user=models.CharField(max_length=100,null=False)
+    file_type = models.CharField(max_length=100,null=False)
+    path=models.CharField(max_length=100,null=False)
+    file_ownership=models.CharField(max_length=100,null=False)
+    modification_time=models.CharField(max_length=100,null=False)
+    monograph_part=models.CharField(max_length=100,null=False)
+    
     
     
