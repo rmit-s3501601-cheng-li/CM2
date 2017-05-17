@@ -90,7 +90,7 @@ def AcceptRequest(request):
         credentials = get_credentials()
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('gmail', 'v1', http=http)
-        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", "Welcome" + registration.Username + " \n\nYou can login now."))
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", "Welcome " + registration.Username + " \n\nYou can login now."))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -107,7 +107,7 @@ def RejectRequest(request):
         credentials = get_credentials()
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('gmail', 'v1', http=http)
-        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "Sorry", registration.Username + " \n\nYou are not allowed to login"))
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "Sorry ", registration.Username + " \n\nYou are not allowed to login"))
         registration.delete()
         return Response({'ststus':200})
     except:
@@ -474,7 +474,7 @@ def EditFile(request):
     newFile = request.FILES['file'] 
     type = request.POST.get('type')
     id = request.POST.get('id')
-    userID=request.POST.get('userID')
+    userID = request.POST.get('userID')
     current=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     if newFile is None:
         return Response({'status':500}) 

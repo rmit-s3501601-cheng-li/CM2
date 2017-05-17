@@ -34,10 +34,6 @@ urlpatterns = [
     url(r'deleteFile$', views.DeleteFile),
     url(r'getFileDetail$', views.GetFileDetail),
     url(r'advancedSearchOr$', views.AdvancedSearchOr),
-<<<<<<< HEAD
-    url(r'advancedSearchAnd$', views.AdvancedSearchAnd),  
-    url(r'editFile$', views.EditFile),     
-=======
     url(r'advancedSearchAnd$', views.AdvancedSearchAnd),
     url(r'editFile$', views.EditFile),
     url(r'getUsersCount$', views.GetRequestListCount),
@@ -45,6 +41,4 @@ urlpatterns = [
 
 
 
-    
->>>>>>> origin/master
 ]
