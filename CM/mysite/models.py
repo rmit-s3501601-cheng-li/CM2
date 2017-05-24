@@ -25,6 +25,8 @@ class Registration_Request(models.Model):
     Permission=models.IntegerField(default=3,null=False)
     Email=models.CharField(max_length=25,null=False)
     Comment=models.CharField(max_length=50,null=True)
+    Firstname=models.CharField(max_length=15,null=True)
+    Lastname=models.CharField(max_length=15,null=True)
     
 class others(models.Model):
     titles = models.CharField(max_length=100,null=False)
@@ -57,6 +59,10 @@ class log(models.Model):
     file_ownership=models.CharField(max_length=100,null=False)
     modification_time=models.CharField(max_length=100,null=False)
     monograph_part=models.CharField(max_length=100,null=False)
+    study_reference =models.CharField(max_length=50,null=True)
+    Intervention= models.CharField(max_length=100,null=True)
+    study_design=models.CharField(max_length=50,null=True)
+    study_ID=models.CharField(max_length=50,null=True)
     
     
     
