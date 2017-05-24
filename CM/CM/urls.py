@@ -28,17 +28,19 @@ urlpatterns = [
     url(r'addAdminUser$', views.AddAdminUser),
     url(r'changePassword$', views.ChangePassword),
     url(r'forgetPassword$', views.ForgetPassword),
-    url(r'viewFile$', views.ViewFile),
     url(r'search$', views.SimpleSearch),
+    url(r'viewFile$', views.ViewFile),
     url(r'downloadFile$', views.download),
+    url(r'editFile$', views.EditFile),
     url(r'deleteFile$', views.DeleteFile),
+    url(r'recoveryFile$', views.RecoveryFile),
     url(r'getFileDetail$', views.GetFileDetail),
     url(r'advancedSearchOr$', views.AdvancedSearchOr),
-    url(r'advancedSearchAnd$', views.AdvancedSearchAnd),
-    url(r'editFile$', views.EditFile),
-    url(r'getUsersCount$', views.GetRequestListCount),
-
-
-
+    url(r'advancedSearchAnd$', views.AdvancedSearchAnd),       
+    url(r'getRequestCount$', views.GetRequestListCount),
+    url(r'addFile$', views.AddFile),
+    url(r'getUserList$', views.GetUserList),
+    url(r'deleteUser$', views.DeleteUser),
+    url(r'getLogList$', views.GetLogList),
 
 ]
