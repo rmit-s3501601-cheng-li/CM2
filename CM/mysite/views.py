@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from rest_framework import viewsets, permissions, status
 from django.template.context_processors import request
 from rest_framework.response import Response
@@ -70,38 +71,38 @@ def Register(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def AcceptRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID'] 
     try: 
         registration = Registration_Request.objects.get(id=requestID)
         new_user=User.objects.create_user(username=registration.Username,password=registration.Password,
-                                          email=registration.Email,first_name=registration.Firstname,last_name=registration.Lasttname,)
+                                          email=registration.Email,first_name=registration.Firstname,last_name=registration.Lastname)
         new_user.save()
         new_user=User.objects.get(username=new_user.username)
         new_user.userprofile.permission=registration.Permission
         if registration.Permission==2:
             new_user.is_staff=True
             new_user.is_active=True
-            new_user.is_superuser=True
+            new_user.is_superuser=False
         else:
             new_user.is_active=True
             new_user.is_staff=False
             new_user.is_superuser=False
         new_user.save()
-        new_user.userprofile.save()        
+        new_user.userprofile.save() 
+        registration.delete()  
         credentials = get_credentials()
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('gmail', 'v1', http=http)
-        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", "Welcome" + registration.Username + " \n\nYou can login now."))
-        registration.delete()
-        return HttpResponse(status.HTTP_200_OK)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email, "Welcome to Chinese Medicine", "Welcome" + registration.Username + " \n\nYou can login now."))  
+        return HttpResponse(status.HTTP_200_OK)  
     except:
         return HttpResponse(status.HTTP_400_BAD_REQUEST)
         
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']   
@@ -118,7 +119,7 @@ def RejectRequest(request):
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser,))  
+@permission_classes((permissions.AllowAny,))  
 def AddAdminUser(request): 
     infor = json.loads(request.body)
     username=infor['username']
@@ -131,7 +132,7 @@ def AddAdminUser(request):
         if user.exists() is True:
             return Response({'ststus':400})
         else:
-            new_user=User.objects.create_superuser(username,email,password,first_name,last_name)
+            new_user=User.objects.create_superuser(username=username,email=email,password=password,first_name=first_name,last_name=last_name)
             new_user.save()
             new_user=User.objects.get(username=new_user.username)
             new_user.userprofile.permission=1     
@@ -253,6 +254,17 @@ def SimpleSearch(request):
         'other_list':other_list
         }
         return Response(content)
+    elif type=='Study design':
+        book_list=book.objects.filter(study_design=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        return Response(book_list)
+    elif type=='File path':
+        book_list=book.objects.filter(path__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        other_list=others.objects.filter(path__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        content = {
+        'book_list': book_list,
+        'other_list':other_list
+        }
+        return Response(content)
     elif type=='All':
         if keyword =='':
             book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
@@ -299,6 +311,11 @@ def AdvancedSearchOr(request):
         elif type[i]=='Monograph':
             book_list=book_list|book.objects.filter(monograph_part=keyword[i])
             other_list=other_list|others.objects.filter(monograph_part=keyword[i])
+        elif type[i]=='Study design':
+            book_list=book_list|book.objects.filter(study_design=keyword[i])
+        elif type[i]=='File path':
+            book_list=book_list|book.objects.filter(path__contains=keyword[i])
+            other_list=other_list|others.objects.filter(path__contains=keyword[i])
         elif type[i]=='All':
             if keyword =='':
                 book_list=book_list|book.objects.all()
@@ -346,6 +363,12 @@ def AdvancedSearchAnd(request):
         elif type[i]=='Monograph':
             book_list=book_list.filter(monograph_part=keyword[i])
             other_list=other_list.filter(monograph_part=keyword[i])
+        elif type[i]=='Study design':
+            book_list= book_list.filter(study_design=keyword[i])
+            other_list=other_list.filter(titles="")
+        elif type[i]=='File path':
+            book_list=book_list.filter(path__contains=keyword[i])
+            other_list=other_list.filter(path__contains=keyword[i])
         elif type[i]=='All':
             if keyword =='':
                 pass
@@ -534,7 +557,8 @@ def EditFile(request):
         else:
             file=others.objects.get(id=id)
         user=User.objects.get(id=userID)
-        newLog=log(logType='Edit',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
+        newLog=log(logType='Edit',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,
+                   file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
         path=file.path
         abso_path = '/Applications/XAMPP/htdocs' + path
         fpath , fname = os.path.split(path)
@@ -562,6 +586,31 @@ def EditFile(request):
 def AddFile(request): 
     newFile = request.FILES['file'] 
     type = request.POST.get('type')
+    title=request.POST.get('title')
+    category=request.POST.get('category')
+    monograph=request.POST.get('monograph')
+    path='/Applications/XAMPP/htdocs'+'/newFile/'+title
+    current=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    userID=request.POST.get('userID')
+    user=User.objects.get(id=userID)
+    if type=='pdf':
+        reference=request.POST.get('study reference')
+        intervention=request.POST.get('Intervention')
+        design=request.POST.get('study design')
+        ID=request.POST.get('study ID')
+        file=book(titles=title,file_type=type,path=path,file_ownership=category,modification_time=current,
+                  monograph_part=monograph,study_reference=reference,Intervention=intervention,study_design=design,study_ID=ID)
+    
+    else:
+        file=others(titles=title,file_type=type,path=path,
+                    file_ownership=category,modification_time=current,monograph_part=monograph)
+    file.save()
+    destination = open(path, 'wb+')
+    for chunk in newFile.chunks():     
+        destination.write(chunk)
+    newLog=log(logType='Add',titles=title,user=user.username,file_type=type,path=path,
+                   file_ownership=category,modification_time=current,monograph_part=monograph)
+    newLog.save()    
     return Response({'status':200})
 
 
@@ -570,7 +619,7 @@ def AddFile(request):
 
 @api_view(http_method_names=['GET'])  
 @permission_classes((permissions.IsAdminUser,))  
-def GetLogsList(request):
+def GetLogList(request):
     try:
         logs_list = log.objects.all().values_list('id','logType','titles','user','modification_time')
         return Response(logs_list)
