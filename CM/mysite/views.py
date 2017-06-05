@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from rest_framework import viewsets, permissions, status
 from django.template.context_processors import request
 from rest_framework.response import Response
@@ -28,6 +27,7 @@ from oauth2client import client
 from oauth2client import tools
 
 from apiclient import errors
+from django_cron import CronJobBase, Schedule
 
 
 SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
@@ -61,13 +61,13 @@ def Register(request):
                 http = credentials.authorize(httplib2.Http())
                 service = discovery.build('gmail', 'v1', http=http)
                 SendMessage(service, "me", CreateMessage("ykd522@gmail.com", "ykd522@gmail.com", username + " want to join", username + ": " + comment))
-                return HttpResponse(status.HTTP_200_OK)
+                return HttpResponse(status=200)
             else:
-                return HttpResponse(status.HTTP_400_BAD_REQUEST)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(status.HTTP_400_BAD_REQUEST)
+            return HttpResponse(status=400)
     except:
-        return HttpResponse(status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(status=400)
 
 
 @api_view(http_method_names=['POST'])  
@@ -100,9 +100,10 @@ def AcceptRequest(request):
         return HttpResponse(status.HTTP_200_OK)  
     except:
         return HttpResponse(status.HTTP_400_BAD_REQUEST)
-        
+ 
+
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny,))  
+@permission_classes((permissions.IsAdminUser,))  
 def RejectRequest(request): 
     infor = json.loads(request.body)
     requestID = infor['requestID']   
@@ -163,7 +164,7 @@ def Login(request):
 @permission_classes((permissions.IsAdminUser,))  
 def GetRequestList(request):
     try:
-        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment','Email')
+        user_list = Registration_Request.objects.all().values_list('id','Username','Permission','Comment','Email','Firstname','Lastname')
         return Response(user_list)
     except:
         return Response({'status':400})
@@ -214,7 +215,7 @@ def SimpleSearch(request):
     type=infor['type']
     keyword=infor['keyword']
     if type=='Title':
-        book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         content = {
         'book_list': book_list,
@@ -222,7 +223,7 @@ def SimpleSearch(request):
         }
         return Response(content)
     elif type=='File Type':
-        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         other_list=others.objects.filter(file_type__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         content = {
         'book_list': book_list,
@@ -230,16 +231,16 @@ def SimpleSearch(request):
         }
         return Response(content)
     elif type=='Study Ref':
-        book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(study_reference=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         return Response(book_list)
     elif type=='Study ID':
-        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(study_ID__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         return Response(book_list)
     elif type=='Intervention':
-        book_list=book.objects.filter(Intervention=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(Intervention=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         return Response(book_list)
     elif type=='Category':
-        book_list=book.objects.filter(file_ownership__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(file_ownership__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         other_list=others.objects.filter(file_ownership__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         content = {
         'book_list': book_list,
@@ -247,19 +248,8 @@ def SimpleSearch(request):
         }
         return Response(content)
     elif type=='Monograph':
-        book_list=book.objects.filter(monograph_part=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+        book_list=book.objects.filter(monograph_part=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
         other_list=others.objects.filter(monograph_part=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-        content = {
-        'book_list': book_list,
-        'other_list':other_list
-        }
-        return Response(content)
-    elif type=='Study design':
-        book_list=book.objects.filter(study_design=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-        return Response(book_list)
-    elif type=='File path':
-        book_list=book.objects.filter(path__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
-        other_list=others.objects.filter(path__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         content = {
         'book_list': book_list,
         'other_list':other_list
@@ -267,10 +257,10 @@ def SimpleSearch(request):
         return Response(content)
     elif type=='All':
         if keyword =='':
-            book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            book_list=book.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
             other_list=others.objects.all().values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         else:
-            book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
+            book_list=book.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design')
             other_list=others.objects.filter(titles__contains=keyword).values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
         content = {
         'book_list': book_list,
@@ -311,11 +301,6 @@ def AdvancedSearchOr(request):
         elif type[i]=='Monograph':
             book_list=book_list|book.objects.filter(monograph_part=keyword[i])
             other_list=other_list|others.objects.filter(monograph_part=keyword[i])
-        elif type[i]=='Study design':
-            book_list=book_list|book.objects.filter(study_design=keyword[i])
-        elif type[i]=='File path':
-            book_list=book_list|book.objects.filter(path__contains=keyword[i])
-            other_list=other_list|others.objects.filter(path__contains=keyword[i])
         elif type[i]=='All':
             if keyword =='':
                 book_list=book_list|book.objects.all()
@@ -324,7 +309,7 @@ def AdvancedSearchOr(request):
                 book_list=book_list|book.objects.filter(titles__contains=keyword[i])
                 other_list=other_list|others.objects.filter(titles__contains=keyword[i])
     content = {
-            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time'),
+            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design'),
             'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
             }
     return Response(content)
@@ -363,12 +348,6 @@ def AdvancedSearchAnd(request):
         elif type[i]=='Monograph':
             book_list=book_list.filter(monograph_part=keyword[i])
             other_list=other_list.filter(monograph_part=keyword[i])
-        elif type[i]=='Study design':
-            book_list= book_list.filter(study_design=keyword[i])
-            other_list=other_list.filter(titles="")
-        elif type[i]=='File path':
-            book_list=book_list.filter(path__contains=keyword[i])
-            other_list=other_list.filter(path__contains=keyword[i])
         elif type[i]=='All':
             if keyword =='':
                 pass
@@ -376,7 +355,7 @@ def AdvancedSearchAnd(request):
                 book_list= book_list.filter(titles__contains=keyword[i])
                 other_list=other_list.filter(titles__contains=keyword[i])  
     content = {
-            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time'),
+            'book_list': book_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time','study_ID','Intervention','study_design'),
             'other_list':other_list.values_list('id','file_type','titles','monograph_part','file_ownership','modification_time')
             }
     return Response(content)
@@ -391,10 +370,22 @@ def AdvancedSearchAnd(request):
 def ViewFile(request):
     infor = json.loads(request.body)
     bookID=infor['id']
+    type = infor['type']
+    # try:
+    #     file=book.objects.get(id=bookID)
+    #     return Response({'path':file.path})
+    # except :
+    #     return HttpResponse(status.HTTP_400_BAD_REQUEST)
+
+
     try:
-        file=book.objects.get(id=bookID)
-        return Response({'path':file.path})
-    except :
+        if type=='pdf':
+            file=book.objects.get(id=bookID)
+            return Response({'path':file.path})
+        else:
+            file=others.objects.get(id=bookID)
+            return Response({'path':file.path})
+    except:
         return HttpResponse(status.HTTP_400_BAD_REQUEST)
     # path = '/Users/kaidiyu/Desktop' + file.path
     # data = open("/Users/kaidiyu/Desktop/a1pg.pdf", "rb").read()
@@ -456,15 +447,15 @@ def DeleteFile(request):
         newLog=log(logType='Delete',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,
                file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
     abso_path = '/Applications/XAMPP/htdocs' + file.path
-    dest_path='/Applications/XAMPP/htdocs'+'/Bin'
+    dest_path='/Applications/XAMPP/htdocs/Bin'
     
     if os.path.exists(abso_path) is False:
-        return Response({'status':400})
+        return Response({'status':abso_path})
     else:
         credentials = get_credentials()
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('gmail', 'v1', http=http)
-        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", registration.Email,  "File Delete Notification", file.titles + " \n\nDeleted.Check details in the log page"))
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", "ykd522@gmail.com",  "File Delete Notification", file.titles + " \n\nDeleted.Check details in the log page"))
         shutil.move(abso_path, dest_path)       
         file.delete()
         newLog.save()
@@ -476,10 +467,12 @@ def DeleteFile(request):
 def RecoveryFile(request):
     infor=json.loads(request.body)
     logID=infor['logID']
-    file=log(id=logID)
+    file=log.objects.get(id=logID)
     current=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     abso_path = '/Applications/XAMPP/htdocs' + file.path
-    dest_path='/Applications/XAMPP/htdocs'+'/Bin'
+    fpath , fname = os.path.split(abso_path)
+    dest_path='/Applications/XAMPP/htdocs/Bin/'+ fname
+
     if file.file_type=='pdf':
         new_file=book(titles=file.titles,file_type=file.file_type,path=file.path,
                file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part,
@@ -487,10 +480,11 @@ def RecoveryFile(request):
                study_ID=file.study_ID)
         
     else:
-        new_fil=others(titles=file.titles,file_type=file.file_type,path=file.path,
+        new_file=others(titles=file.titles,file_type=file.file_type,path=file.path,
                file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
     new_file.save()        
-    shutil.move(dest_path, abso_path)     
+    shutil.move(dest_path, fpath)
+    file.delete()     
     return Response({'status':200})
         
 
@@ -557,8 +551,7 @@ def EditFile(request):
         else:
             file=others.objects.get(id=id)
         user=User.objects.get(id=userID)
-        newLog=log(logType='Edit',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,
-                   file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
+        newLog=log(logType='Edit',titles=file.titles,user=user.username,file_type=file.file_type,path=file.path,file_ownership=file.file_ownership,modification_time=current,monograph_part=file.monograph_part)
         path=file.path
         abso_path = '/Applications/XAMPP/htdocs' + path
         fpath , fname = os.path.split(path)
@@ -589,15 +582,16 @@ def AddFile(request):
     title=request.POST.get('title')
     category=request.POST.get('category')
     monograph=request.POST.get('monograph')
-    path='/Applications/XAMPP/htdocs'+'/newFile/'+title
+    path='/New File/'+ newFile.name
+    folder_path = '/Applications/XAMPP/htdocs/New File'
     current=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
     userID=request.POST.get('userID')
     user=User.objects.get(id=userID)
     if type=='pdf':
-        reference=request.POST.get('study reference')
-        intervention=request.POST.get('Intervention')
-        design=request.POST.get('study design')
-        ID=request.POST.get('study ID')
+        reference=request.POST.get('studyRef')
+        intervention=request.POST.get('intervention')
+        design=request.POST.get('studyDesgin')
+        ID=request.POST.get('studyID')
         file=book(titles=title,file_type=type,path=path,file_ownership=category,modification_time=current,
                   monograph_part=monograph,study_reference=reference,Intervention=intervention,study_design=design,study_ID=ID)
     
@@ -605,7 +599,7 @@ def AddFile(request):
         file=others(titles=title,file_type=type,path=path,
                     file_ownership=category,modification_time=current,monograph_part=monograph)
     file.save()
-    destination = open(path, 'wb+')
+    destination = open(os.path.join(folder_path, newFile.name), 'wb+')
     for chunk in newFile.chunks():     
         destination.write(chunk)
     newLog=log(logType='Add',titles=title,user=user.username,file_type=type,path=path,
@@ -619,7 +613,7 @@ def AddFile(request):
 
 @api_view(http_method_names=['GET'])  
 @permission_classes((permissions.IsAdminUser,))  
-def GetLogList(request):
+def GetLogsList(request):
     try:
         logs_list = log.objects.all().values_list('id','logType','titles','user','modification_time')
         return Response(logs_list)
@@ -632,7 +626,7 @@ def GetLogList(request):
 @api_view(http_method_names=['GET'])
 @permission_classes((permissions.IsAdminUser,))
 def GetUserList(request):  
-    users=User.objects.all().values_list('id','username','email','is_superuser','is_staff','is_active')
+    users=User.objects.all().values_list('id','username','email','is_superuser','is_staff','is_active','first_name','last_name')
     return Response(users)
      
 
@@ -661,6 +655,20 @@ def GetRequestListCount(request):
         return Response({'status':400})
 
 
+
+
+
+class MyCronJob(CronJobBase):
+    RUN_EVERY_MINS = 2 # every 2 hours
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    code = 'mysite.my_cron_job'    # a unique code
+
+    def do(self):
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('gmail', 'v1', http=http)
+        SendMessage(service, "me", CreateMessage("ykd522@gmail.com", "ykd522@gmail.com",  "File Delete Notification", file.titles + " \n\nDeleted.Check details in the log page"))
 
 
 
@@ -697,7 +705,7 @@ def CreateMessage(sender, to, subject, message_text):
   Returns:
     An object containing a base64url encoded email object.
   """
-  message = MIMEText(message_text)
+  message = MIMEText(message_text.encode('utf-8').strip())
   message['to'] = to
   message['from'] = sender
   message['subject'] = subject
